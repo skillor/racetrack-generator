@@ -1,2 +1,38 @@
-<canvas #debugCanvas></canvas>
-<canvas #trackCanvas></canvas>
+<div class="flex flex-col">
+    <div class="flex flex-row">
+        <div class="form-control w-full max-w-xs">
+            <label class="label">
+              <span class="label-text">Width</span>
+            </label>
+            <input [(ngModel)]="trackWidth" type="text" placeholder="" class="input input-bordered w-full max-w-xs" />
+        </div>
+        <div class="form-control w-full max-w-xs">
+            <label class="label">
+              <span class="label-text">Height</span>
+            </label>
+            <input [(ngModel)]="trackHeight" type="text" placeholder="" class="input input-bordered w-full max-w-xs" />
+        </div>
+        <div class="form-control w-full max-w-xs">
+            <label class="label">
+              <span class="label-text">Segments</span>
+            </label>
+            <input [(ngModel)]="inputSegments" type="text" placeholder="" class="input input-bordered w-full max-w-xs" />
+        </div>
+        <div class="form-control w-full max-w-xs">
+            <label class="label">
+              <span class="label-text">Seed</span>
+            </label>
+            <input [(ngModel)]="inputSeed" type="text" placeholder="" class="input input-bordered w-full max-w-xs" />
+        </div>
+        <button class="btn" (click)="generateTrack()">Generate</button>
+        <button class="btn" (click)="addSegments()">Add Segments</button>
+        <div class="flex flex-col">
+            <div>Time: {{ generationTime }} ms</div>
+            <div>Seed: {{ outputSeed }}</div>
+        </div>
+    </div>
+    <div>
+        <canvas class="border" #debugCanvas></canvas>
+        <canvas class="border" #trackCanvas></canvas>
+    </div>
+</div>

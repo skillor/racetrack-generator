@@ -51,6 +51,10 @@ export class Track {
         this.gates = gates;
     }
 
+    firstGate(): Line {
+        return this.gates[0];
+    }
+
     lastGate(): Line {
         return this.gates[this.gates.length - 1];
     }

@@ -1,7 +1,6 @@
 import { Component, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { Track } from './shared/track-generator/track';
 import { TrackGenerator } from './shared/track-generator/track-generator';
-import { TrackGeneratorService } from './shared/track-generator/track-generator.service';
 
 @Component({
     selector: 'app-root',
@@ -18,7 +17,16 @@ export class AppComponent implements AfterViewInit {
     debugCanvas?: HTMLCanvasElement;
     trackCanvas?: HTMLCanvasElement;
 
-    constructor(private trackGeneratorService: TrackGeneratorService) {
+    inputSeed = '';
+    trackWidth = '1000';
+    trackHeight = '1000';
+    inputSegments = '200';
+    outputSeed = '';
+    generationTime = 0;
+
+    private track!: Track;
+
+    constructor() {
 
     }
 
@@ -26,27 +34,42 @@ export class AppComponent implements AfterViewInit {
         this.trackCanvas = this.trackCanvasRef!.nativeElement;
         this.debugCanvas = this.debugCanvasRef!.nativeElement;
 
-        const width = 1000;
-        const height = 1000;
+        this.generateTrack();
+    }
 
-        this.debugCanvas.width = width;
-        this.debugCanvas.height = height;
+    generateTrack() {
+        const width = +this.trackWidth;
+        const height = +this.trackHeight;
 
-        this.trackCanvas.width = width;
-        this.trackCanvas.height = height;
+        this.debugCanvas!.width = width;
+        this.debugCanvas!.height = height;
 
-        const track = new Track(
-            this.debugCanvas,
-            this.trackCanvas,
-            [[[500, 500], [500, 510]]],
+        this.trackCanvas!.width = width;
+        this.trackCanvas!.height = height;
+
+        this.track = new Track(
+            this.debugCanvas!,
+            this.trackCanvas!,
+            [[[width * 0.5, height * 0.5], [width * 0.5 + 10, height * 0.5]]],
         );
 
+        this.track.debugDrawGate(this.track.firstGate(), '#f80', '#088');
+
+        this.addSegments();
+    }
+
+    addSegments() {
         const trackGenerator = new TrackGenerator(
-            track,
-            track.lastGate(),
-            track.lastGate(),
+            this.track,
+            this.track.lastGate(),
+            this.track.firstGate(),
+            this.inputSeed,
         );
 
-        trackGenerator.generate();
+        trackGenerator.maxSegments = +this.inputSegments;
+
+        this.outputSeed = trackGenerator.seed;
+
+        this.generationTime = trackGenerator.generate();
     }
 }

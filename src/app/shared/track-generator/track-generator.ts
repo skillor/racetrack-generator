@@ -1,13 +1,15 @@
+import * as seedrandom from "seedrandom";
 import { Line } from "./line";
 import { Point } from "./point";
 import { Track } from "./track";
 
 export class TrackGenerator {
-    gateDistance: number = 10;
+    gateDistance: number = 4;
     minCurve: number = -Math.PI;
     maxCurve: number = Math.PI;
-    curveRandomFactor: number = Math.PI / 4;
-    maxSegments: number = 1000;
+    curveRandomFactor: number = Math.PI / 3;
+    maxSegments: number = 100000;
+    maxIterations: number = 10000;
     minGateHalfSize: number = 2;
     maxGateHalfSize: number = 5;
     gateHalfSizeRandomFactor: number = 3;
@@ -23,9 +25,9 @@ export class TrackGenerator {
         return Math.atan2(gate[1][1] - gate[0][1], gate[1][0] - gate[0][0]) - Math.PI * 0.5;
     }
 
-    private gateSize(gate: Line): number {
-        const a = gate[0][0] - gate[1][0];
-        const b = gate[0][1] - gate[1][1];
+    private lineLength(line: Line): number {
+        const a = line[0][0] - line[1][0];
+        const b = line[0][1] - line[1][1];
         return Math.sqrt(a * a + b * b);
     }
 
@@ -40,8 +42,7 @@ export class TrackGenerator {
         return [point[0] + Math.cos(angle) * distance, point[1] + Math.sin(angle) * distance];
     }
 
-    private lineIntersect(line1: Line, line2: Line): boolean {
-        // let a,b,c,d,p,q,r,s = line1[0][0] line1[0][0];
+    private lineIntersectionPoint(line1: Line, line2: Line): Point | null {
         let a = line1[0][0];
         let b = line1[0][1];
         let c = line1[1][0];
@@ -53,39 +54,50 @@ export class TrackGenerator {
         // returns true if the line from (a,b)->(c,d) intersects with (p,q)->(r,s)
         let det, gamma, lambda;
         det = (c - a) * (s - q) - (r - p) * (d - b);
-        if (det === 0) {
-            return false;
-        } else {
-            lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
-            gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
-            return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
-        }
+        if (det === 0) return null;
+
+        lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
+        gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
+
+        if (!((0 < lambda && lambda < 1) && (0 < gamma && gamma < 1))) return null;
+
+        return [
+            a + lambda * (c - a),
+            b + lambda * (d - b),
+        ];
     }
 
     track: Track;
     startGate: Line;
     endGate: Line;
+    seed: string;
+    random: seedrandom.PRNG;
 
     constructor(
         track: Track,
         startGate: Line,
         endGate: Line,
+        seed: string = '',
     ) {
         this.track = track;
         this.startGate = startGate;
         this.endGate = endGate;
+
+        if (seed === '') seed = ('' + Math.random()).substring(2);
+        this.seed = seed;
+        this.random = seedrandom(seed);
     }
 
     private gateNotInBounds(gate: Line): boolean {
-        return      gate[0][0] < 0 ||
-                    gate[0][1] < 0 ||
-                    gate[1][0] < 0 ||
-                    gate[1][1] < 0 ||
-                    gate[0][0] > this.track.width ||
-                    gate[1][0] > this.track.width ||
-                    gate[0][1] > this.track.height ||
-                    gate[1][1] > this.track.height
-        ;
+        return gate[0][0] < 0 ||
+            gate[0][1] < 0 ||
+            gate[1][0] < 0 ||
+            gate[1][1] < 0 ||
+            gate[0][0] > this.track.width ||
+            gate[1][0] > this.track.width ||
+            gate[0][1] > this.track.height ||
+            gate[1][1] > this.track.height
+            ;
     }
 
     private getTrackCollision(
@@ -101,13 +113,13 @@ export class TrackGenerator {
             for (let i = this.track.gates.length - 1; i > 1; i--) {
                 lines[0] = [connection[0], connection[1]];
                 lines[1] = [this.track.gates[i][0], this.track.gates[i - 1][0]];
-                if (this.lineIntersect(
+                if (this.lineIntersectionPoint(
                     lines[0], lines[1],
-                )) return lines;
+                ) !== null) return lines;
                 lines[1] = [this.track.gates[i][1], this.track.gates[i - 1][1]];
-                if (this.lineIntersect(
+                if (this.lineIntersectionPoint(
                     lines[0], lines[1],
-                )) return lines;
+                ) !== null) return lines;
             }
         }
         return null;
@@ -127,33 +139,70 @@ export class TrackGenerator {
         return collision;
     }
 
-    private generateNextGate(
-        currentGate: Line,
-    ): Line {
-        let missingGates = 0;
-        let trys = 0;
-        // while (true) {
-        for (let test = 0; test < 100; test++) {
+    private calcMaxGateHalfSize(pos: Point, angle: number): number {
+        let line = this.pointToGate(pos, angle, this.track.width * this.track.height);
+        let minPoint = pos;
+        let minDistance = 1000;
+        let collision;
+        for (let i = this.track.gates.length - 1; i > 1; i--) {
+            collision = this.lineIntersectionPoint(
+                [line[0], line[1]],
+                [this.track.gates[i][0], this.track.gates[i - 1][0]],
+            );
+            if (collision !== null) {
+                const distance = this.lineLength([collision, pos]);
+                if (distance < minDistance) {
+                    minPoint = collision;
+                    minDistance = distance;
+                }
+            }
+            collision = this.lineIntersectionPoint(
+                [line[0], line[1]],
+                [this.track.gates[i][1], this.track.gates[i - 1][1]],
+            );
+            if (collision !== null) {
+                const distance = this.lineLength([collision, pos]);
+                if (distance < minDistance) {
+                    minPoint = collision;
+                    minDistance = distance;
+                }
+            }
+        }
+        // console.log(minDistance);
+        // console.log(minPoint);
 
+        return minDistance;
+    }
+
+    generate(): number {
+        const startTime = new Date().getTime();
+        let currentGate = this.startGate;
+
+        const newGates = [];
+
+        let counter = 1;
+        while (true) {
             let currentPos = this.gateCenterPos(currentGate);
             let currentAngle = this.gateAngle(currentGate);
-            let currentGateHalfSize = this.gateSize(currentGate) / 2;
+            let currentGateHalfSize = this.lineLength(currentGate) / 2;
 
             let nextAngle = Math.max(
                 this.minCurve,
                 Math.min(
                     this.maxCurve,
-                    currentAngle + (Math.random() - 0.5) * this.curveRandomFactor
+                    currentAngle + (this.random() - 0.5) * this.curveRandomFactor
                 ));
+
+            let nextPos = this.pointTravel(currentPos, nextAngle, this.gateDistance);
+
+            let maxNextGateHalfSize = this.calcMaxGateHalfSize(nextPos, nextAngle);
 
             let nextGateHalfSize = Math.max(
                 this.minGateHalfSize,
                 Math.min(
-                    this.maxGateHalfSize,
-                    currentGateHalfSize + (Math.random() - 0.5) * this.gateHalfSizeRandomFactor,
+                    Math.min(this.maxGateHalfSize, maxNextGateHalfSize),
+                    currentGateHalfSize + (this.random() - 0.5) * this.gateHalfSizeRandomFactor,
                 ));
-
-            let nextPos = this.pointTravel(currentPos, nextAngle, this.gateDistance);
 
             let nextGate = this.pointToGate(nextPos, nextAngle, nextGateHalfSize);
 
@@ -164,43 +213,21 @@ export class TrackGenerator {
 
             if (collision === false) {
                 this.track.gates.push(nextGate);
-                if (missingGates == 0) return nextGate;
-                trys = 0;
-                missingGates--;
-                currentGate = this.track.lastGate();
-            } else {
-                trys++;
+                newGates.push(nextGate);
+                if (newGates.length >= this.maxSegments) break;
+                currentGate = nextGate;
             }
 
-            if (trys > 5) {
-                trys = 0;
-                this.track.gates.pop();
-                missingGates++;
-                currentGate = this.track.lastGate();
-            }
-        }
-        console.log('exceeded computation');
-        return currentGate;
-    }
-
-    generate() {
-
-        const startTime = new Date().getTime();
-        let currentGate = this.startGate;
-
-        for (let i = 0; i < this.maxSegments; i++) {
-
-            let nextGate = this.generateNextGate(
-                currentGate,
-            );
-
-            currentGate = nextGate;
+            counter++;
+            if (counter > this.maxIterations) break;
         }
 
-        console.log(new Date().getTime() - startTime + ' ms');
+        const generationTime = new Date().getTime() - startTime;
 
-        for (let gate of this.track.gates) {
+        for (let gate of newGates) {
             this.track.debugDrawGate(gate);
         }
+
+        return generationTime;
     }
 }
