@@ -36,14 +36,17 @@ export class Track {
     }
 
     constructor(
+        width: number,
+        height: number,
         debugCanvas: HTMLCanvasElement | null = null,
         trackCanvas: HTMLCanvasElement,
         gates: Line[],
     ) {
         if (gates.length == 0) throw new Error('needs min 1 gate to start');
 
-        this.width = trackCanvas.width;
-        this.height = trackCanvas.height;
+        this.width = width;
+        this.height = height;
+
         this.trackCanvasContext = trackCanvas.getContext("2d")!;
 
         if (debugCanvas !== null) this.debugCanvasContext = debugCanvas.getContext("2d");

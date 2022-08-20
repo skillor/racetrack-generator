@@ -41,19 +41,25 @@ export class AppComponent implements AfterViewInit {
         const width = +this.trackWidth;
         const height = +this.trackHeight;
 
-        this.debugCanvas!.width = width;
-        this.debugCanvas!.height = height;
+        this.debugCanvas!.width = width + 1;
+        this.debugCanvas!.height = height + 1;
 
-        this.trackCanvas!.width = width;
-        this.trackCanvas!.height = height;
+        this.trackCanvas!.width = width + 1;
+        this.trackCanvas!.height = height + 1;
 
         this.track = new Track(
+            width,
+            height,
             this.debugCanvas!,
             this.trackCanvas!,
-            [[[width * 0.5, height * 0.5], [width * 0.5 + 10, height * 0.5]]],
+            [
+                [[width * 0.5, height * 0.5], [width * 0.5 + 10, height * 0.5]],
+                [[0, 0], [0 + 10, 0]],
+            ],
         );
 
         this.track.debugDrawGate(this.track.firstGate(), '#f80', '#088');
+        this.track.debugDrawGate(this.track.lastGate(), '#f80', '#088');
 
         this.addSegments();
     }
@@ -70,6 +76,7 @@ export class AppComponent implements AfterViewInit {
 
         this.outputSeed = trackGenerator.seed;
 
-        this.generationTime = trackGenerator.generate();
+        // this.generationTime = trackGenerator.generate();
+        this.generationTime = trackGenerator.solve();
     }
 }
