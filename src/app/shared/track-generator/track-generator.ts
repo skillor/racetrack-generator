@@ -105,9 +105,9 @@ export class TrackGenerator {
     private gateHasCollision(currentGate: Line, newGate: Line, gates: Line[]): boolean {
         if (this.lineOutBounds(newGate)) return true;
         for (let connection of [
-            // [currentGate[0], newGate[0]],
+            [currentGate[0], newGate[0]],
             [newGate[0], newGate[1]],
-            // [newGate[1], currentGate[1]],
+            [newGate[1], currentGate[1]],
         ]) {
             const currentGates = this.track.gates.concat(gates);
             for (let i = currentGates.length - 1; i > 1; i--) {
@@ -185,19 +185,23 @@ export class TrackGenerator {
 
         for (let i = this.curveComputeCount - 1; i > 0; i--) {
             vectors.push(
-                this.angleToVectorMultiplied(this.normalizeAngle(currentAngle + wantedAngle + ((i * this.maxCurve) / this.curveComputeCount)), this.gateDistance)
+                this.angleToVectorMultiplied(this.normalizeAngle(currentAngle + ((i * this.maxCurve) / this.curveComputeCount)), this.gateDistance)
             );
             vectors.push(
-                this.angleToVectorMultiplied(this.normalizeAngle(currentAngle + wantedAngle - ((i * this.maxCurve) / this.curveComputeCount)), this.gateDistance)
+                this.angleToVectorMultiplied(this.normalizeAngle(currentAngle - ((i * this.maxCurve) / this.curveComputeCount)), this.gateDistance)
             );
         }
 
         vectors.push(
-            this.angleToVectorMultiplied(this.normalizeAngle(currentAngle + wantedAngle), this.gateDistance)
+            this.angleToVectorMultiplied(this.normalizeAngle(currentAngle), this.gateDistance)
         );
 
+        // vectors.push(
+        //     this.angleToVectorMultiplied(this.normalizeAngle(currentAngle + wantedAngle), this.gateDistance)
+        // );
+
         for (let vector of vectors) {
-            this.track.debugDrawPoint([startPos[0] + vector[0], startPos[1] + vector[1]], '#fff')
+            // this.track.debugDrawPoint([startPos[0] + vector[0], startPos[1] + vector[1]], '#fff')
         }
 
         return vectors;
@@ -228,15 +232,16 @@ export class TrackGenerator {
             const currentAngle = this.gateAngle(currentGate);
 
             if (this.pointEquals(currentPos, endPos) ||
-                traversedGates.length >= this.maxSegments) {
+                traversedGates.length > this.maxSegments) {
+                traversedGates.shift();
                 return traversedGates;
             }
 
 
             // predict == best guess
-            // for (let d of this.predictDirections(currentPos, endPos, currentAngle)) {
+            for (let d of this.predictDirections(currentPos, endPos, currentAngle)) {
             // random == random guess
-            for (let d of this.randomShuffle(this.predictDirections(currentPos, endPos, currentAngle))) {
+            // for (let d of this.randomShuffle(this.predictDirections(currentPos, endPos, currentAngle))) {
             // reverse predict == worst guess
             // for (let d of this.predictDirections(currentGridPos, endGridPos).reverse()) {
                 const newPos: Point = [currentPos[0] + d[0], currentPos[1] + d[1]];
@@ -245,7 +250,7 @@ export class TrackGenerator {
                 const newGate = this.pointToGate(newPos, newAngle, this.maxGateHalfSize);
 
                 if (!this.gateHasCollision(currentGate, newGate, traversedGates)) {
-                    gates.push([newGate, traversedGates.concat([newGate])]);
+                    gates.push([newGate, traversedGates.concat([currentGate])]);
                 }
             }
         }
