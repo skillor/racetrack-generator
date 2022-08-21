@@ -42,8 +42,6 @@ export class Track {
         trackCanvas: HTMLCanvasElement,
         gates: Line[],
     ) {
-        if (gates.length == 0) throw new Error('needs min 1 gate to start');
-
         this.width = width;
         this.height = height;
 

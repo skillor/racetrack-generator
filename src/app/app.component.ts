@@ -1,4 +1,5 @@
 import { Component, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { Line } from './shared/track-generator/line';
 import { Track } from './shared/track-generator/track';
 import { TrackGenerator } from './shared/track-generator/track-generator';
 
@@ -20,11 +21,14 @@ export class AppComponent implements AfterViewInit {
     inputSeed = '';
     trackWidth = '1000';
     trackHeight = '1000';
-    inputSegments = '200';
+    inputSegments = '2';
     outputSeed = '';
     generationTime = 0;
 
     private track!: Track;
+
+    startGate: Line = [[500, 500], [510, 500]];
+    endGate: Line = [[0, 0], [0 + 10, 0]];
 
     constructor() {
 
@@ -53,22 +57,25 @@ export class AppComponent implements AfterViewInit {
             this.debugCanvas!,
             this.trackCanvas!,
             [
-                [[width * 0.5, height * 0.5], [width * 0.5 + 10, height * 0.5]],
-                [[0, 0], [0 + 10, 0]],
+                // [[width * 0.5, height * 0.5], [width * 0.5 + 10, height * 0.5]],
+                // [[0, 0], [0 + 10, 0]],
             ],
         );
 
-        this.track.debugDrawGate(this.track.firstGate(), '#f80', '#088');
-        this.track.debugDrawGate(this.track.lastGate(), '#f80', '#088');
+        this.track.debugDrawGate(this.startGate, '#f80', '#088');
+        this.track.debugDrawGate(this.endGate, '#f80', '#088');
 
         this.addSegments();
     }
 
     addSegments() {
+        let startGate = this.track.lastGate();
+        if (startGate === undefined) startGate = this.startGate;
+
         const trackGenerator = new TrackGenerator(
             this.track,
-            this.track.lastGate(),
-            this.track.firstGate(),
+            startGate,
+            this.endGate,
             this.inputSeed,
         );
 
@@ -76,7 +83,6 @@ export class AppComponent implements AfterViewInit {
 
         this.outputSeed = trackGenerator.seed;
 
-        // this.generationTime = trackGenerator.generate();
-        this.generationTime = trackGenerator.solve();
+        this.generationTime = trackGenerator.generate();
     }
 }
