@@ -18,6 +18,10 @@ export class TrackGenerator {
         return point1[0] == point2[0] && point1[1] == point2[1];
     }
 
+    private lineEqualsStrict(line1: Line, line2: Line): boolean {
+        return this.pointEquals(line1[0], line2[0]) && this.pointEquals(line1[1], line2[1]);
+    }
+
     private gateCenterPos(gate: Line): Point {
         return [
             gate[0][0] + (gate[1][0] - gate[0][0]) * 0.5,
@@ -50,8 +54,7 @@ export class TrackGenerator {
         return this.normalizeAngle(this.lineAngle(gate) - Math.PI * 0.5);
     }
 
-    private gateMatches(gate1: Line, gate2: Line): boolean {
-        const proximity = 1000;
+    private gateMatches(gate1: Line, gate2: Line, proximity: number = 100): boolean {
         return this.lineLengthUnnormed([gate1[0], gate2[0]]) < proximity &&
             this.lineLengthUnnormed([gate1[1], gate2[1]]) < proximity;
     }
@@ -226,10 +229,23 @@ export class TrackGenerator {
         return a;
     }
 
+
+
+    private containsGate(gate: Line, gates: Line[]): boolean {
+        for(var i = 0; i < gates.length; i++) {
+            if (this.gateMatches(gate, gates[i], 10)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private findTrackDFS(): [Line[], boolean, number] {
         const gates: [Line, Line[]][] = [];
 
         const endPos = this.gateCenterPos(this.endGate);
+
+        const visitedGates: Line[] = [];
 
         gates.push([this.startGate, []]);
 
@@ -250,7 +266,6 @@ export class TrackGenerator {
                 return [traversedGates, foundEnd, iterationCount];
             }
 
-
             // predict == best guess
             // for (let d of this.predictDirections(currentPos, endPos, currentAngle)) {
             // random == random guess
@@ -262,7 +277,11 @@ export class TrackGenerator {
                 const newAngle = this.vectorAngle(d);
                 const newGate = this.pointToGate(newPos, newAngle, this.maxGateHalfSize);
 
-                if (!this.gateHasCollision(currentGate, newGate, traversedGates)) {
+                if (!this.containsGate(newGate, visitedGates) &&
+                    !this.gateHasCollision(currentGate, newGate, traversedGates)) {
+
+                    visitedGates.push(currentGate);
+
                     gates.push([newGate, traversedGates.concat([currentGate])]);
                 }
             }
