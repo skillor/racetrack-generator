@@ -6,8 +6,9 @@ import { Track } from "./track";
 export class TrackGenerator {
     maxCurve: number = Math.PI / 4;
     gateDistance: number = 10;
-    curveComputeCount: number = 4;
+    curveComputeCount: number = 2;
     maxSegments: number = 100000;
+    maxIterations: number = 1000000;
     minGateHalfSize: number = 2;
     maxGateHalfSize: number = 5;
     gateHalfSizeRandomFactor: number = 3;
@@ -49,10 +50,20 @@ export class TrackGenerator {
         return this.normalizeAngle(this.lineAngle(gate) - Math.PI * 0.5);
     }
 
-    private lineLength(line: Line): number {
+    private gateMatches(gate1: Line, gate2: Line): boolean {
+        const proximity = 1000;
+        return this.lineLengthUnnormed([gate1[0], gate2[0]]) < proximity &&
+            this.lineLengthUnnormed([gate1[1], gate2[1]]) < proximity;
+    }
+
+    private lineLengthUnnormed(line: Line): number {
         const a = line[0][0] - line[1][0];
         const b = line[0][1] - line[1][1];
-        return Math.sqrt(a * a + b * b);
+        return a * a + b * b;
+    }
+
+    private lineLength(line: Line): number {
+        return Math.sqrt(this.lineLengthUnnormed(line));
     }
 
     private pointToGate(point: Point, angle: number, halfSize: number): Line {
@@ -215,33 +226,35 @@ export class TrackGenerator {
         return a;
     }
 
-    private findTrackDFS(): Line[] | null {
+    private findTrackDFS(): [Line[], boolean, number] {
         const gates: [Line, Line[]][] = [];
 
         const endPos = this.gateCenterPos(this.endGate);
 
         gates.push([this.startGate, []]);
 
+        let iterationCount = 0;
+
         while (true) {
             const current = gates.pop();
-            if (current === undefined) return null;
+            if (current === undefined) return [[], false, iterationCount];
             const currentGate = current[0];
             const traversedGates = current[1];
 
             const currentPos = this.gateCenterPos(currentGate);
             const currentAngle = this.gateAngle(currentGate);
 
-            if (this.pointEquals(currentPos, endPos) ||
+            const foundEnd = this.gateMatches(currentGate, this.endGate);
+            if (foundEnd ||
                 traversedGates.length > this.maxSegments) {
-                traversedGates.shift();
-                return traversedGates;
+                return [traversedGates, foundEnd, iterationCount];
             }
 
 
             // predict == best guess
-            for (let d of this.predictDirections(currentPos, endPos, currentAngle)) {
+            // for (let d of this.predictDirections(currentPos, endPos, currentAngle)) {
             // random == random guess
-            // for (let d of this.randomShuffle(this.predictDirections(currentPos, endPos, currentAngle))) {
+            for (let d of this.randomShuffle(this.predictDirections(currentPos, endPos, currentAngle))) {
             // reverse predict == worst guess
             // for (let d of this.predictDirections(currentGridPos, endGridPos).reverse()) {
                 const newPos: Point = [currentPos[0] + d[0], currentPos[1] + d[1]];
@@ -253,30 +266,36 @@ export class TrackGenerator {
                     gates.push([newGate, traversedGates.concat([currentGate])]);
                 }
             }
+
+            iterationCount++;
+            if (iterationCount > this.maxIterations) return [[], false, iterationCount];
         }
     }
 
-    generate(): number {
+    generate(): [number, number] {
         const startTime = new Date().getTime();
 
-        const gates = this.findTrackDFS();
-        if (gates === null) {
+        const solution = this.findTrackDFS();
+        if (solution[0].length == 0) {
             console.log('path was not found!');
-            return -1;
+            return [-1, solution[2]];
         }
+
+        const gates = solution[0];
+        if (solution[1]) console.log('path is finished');
 
         const n = gates.length;
 
         for (let i = 0; i < n; i++) {
             this.track.gates.push(gates[i])
 
-            this.track.debugDrawGate(gates[i]);
+            if (i > 0) this.track.debugDrawGate(gates[i]);
             // this.track.debugDrawLine([this.gridPostoPos(path[i]), this.gridPostoPos(path[i - 1])]);
         }
 
 
         const generationTime = new Date().getTime() - startTime;
 
-        return generationTime;
+        return [generationTime, solution[2]];
     }
 }

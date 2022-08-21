@@ -24,6 +24,7 @@ export class AppComponent implements AfterViewInit {
     inputSegments = '2';
     outputSeed = '';
     generationTime = 0;
+    generationIterations = 0;
 
     private track!: Track;
 
@@ -44,6 +45,8 @@ export class AppComponent implements AfterViewInit {
     generateTrack() {
         const width = +this.trackWidth;
         const height = +this.trackHeight;
+
+        this.startGate = [[width * 0.5, height * 0.5], [width * 0.5 + 10, height * 0.5]];
 
         this.debugCanvas!.width = width + 1;
         this.debugCanvas!.height = height + 1;
@@ -83,6 +86,8 @@ export class AppComponent implements AfterViewInit {
 
         this.outputSeed = trackGenerator.seed;
 
-        this.generationTime = trackGenerator.generate();
+        const gen = trackGenerator.generate();
+        this.generationTime = gen[0];
+        this.generationIterations = gen[1];
     }
 }
