@@ -5,9 +5,9 @@ import { Point } from "./point";
 import { Track } from "./track";
 
 export class TrackGenerator {
-    xComputeFactor: number = 1;
-    yComputeFactor: number = 1;
-    angleComputeFactor: number = 10;
+    xComputeFactor: number = 0.5;
+    yComputeFactor: number = 0.5;
+    angleComputeFactor: number = 9;
     maxCurve: number = Math.PI / 4;
     gateDistance: number = 10;
     curveComputeCount: number = 4;
@@ -279,8 +279,13 @@ export class TrackGenerator {
         let iterationCount = 0;
 
         while (true) {
-            const current = gates.pop();
-            if (current === undefined) return [[], false, iterationCount];
+            let current = gates.pop();
+            if (current === undefined) {
+                this.angleComputeFactor += 1;
+                return this.findTrackDFS();
+                // current = [this.startGate, []];
+                // return [[], false, iterationCount]
+            };
             const currentGate = current[0];
             const traversedGates = current[1];
 
@@ -324,6 +329,8 @@ export class TrackGenerator {
                     gates.push([newGate, traversedGates.concat([currentGate])]);
                 }
             }
+
+            // console.log(gates.length);
 
             iterationCount++;
             if (iterationCount > this.maxIterations) return [[], false, iterationCount];

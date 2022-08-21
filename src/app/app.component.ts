@@ -37,8 +37,8 @@ export class AppComponent implements AfterViewInit {
     constructor(private storageService: StorageService) {
         this.generatorMode = this.storageService.load('track_gen_mode', 'random');
         this.inputSeed = this.storageService.load('track_seed', '');
-        this.trackWidth = this.storageService.load('track_width', '1000');
-        this.trackHeight = this.storageService.load('track_height', '1000');
+        this.trackWidth = this.storageService.load('track_width', '200');
+        this.trackHeight = this.storageService.load('track_height', '200');
         this.inputSegments = this.storageService.load('track_segments', '2');
     }
 
@@ -76,6 +76,7 @@ export class AppComponent implements AfterViewInit {
             this.debugCanvas!,
             this.trackCanvas!,
             [
+                this.endGate,
                 this.startGate,
             ],
         );
