@@ -24,8 +24,16 @@
             </label>
             <input [(ngModel)]="inputSeed" type="text" placeholder="" class="input input-bordered w-full max-w-xs" />
         </div>
+        <div class="btn-group btn-group-vertical">
+            <button [class.btn-active]="generatorMode == 'best'" (click)="generatorMode = 'best'" class="btn">Best</button>
+            <button [class.btn-active]="generatorMode == 'random'" (click)="generatorMode = 'random'" class="btn">Random</button>
+            <button [class.btn-active]="generatorMode == 'worst'" (click)="generatorMode = 'worst'" class="btn">Worst</button>
+        </div>
         <button class="btn" (click)="generateTrack()">Generate</button>
-        <button class="btn" (click)="addSegments()">Add Segments</button>
+        <div class="flex flex-col">
+            <button class="btn" (click)="addSegments()">Add Segments</button>
+            <button class="btn" (click)="deleteSegments()">Del Segments</button>
+        </div>
         <div class="flex flex-col">
             <div>Time: {{ generationTime }} ms</div>
             <div>Iterations: {{ generationIterations }}</div>
@@ -33,7 +41,7 @@
         </div>
     </div>
     <div>
-        <canvas class="border" #debugCanvas></canvas>
         <canvas class="border" #trackCanvas></canvas>
+        <canvas class="border" #debugCanvas></canvas>
     </div>
 </div>

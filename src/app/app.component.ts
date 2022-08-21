@@ -1,4 +1,6 @@
 import { Component, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { StorageService } from './shared/storage/storage.service';
+import { GeneratorMode } from './shared/track-generator/generator-modes';
 import { Line } from './shared/track-generator/line';
 import { Track } from './shared/track-generator/track';
 import { TrackGenerator } from './shared/track-generator/track-generator';
@@ -18,10 +20,11 @@ export class AppComponent implements AfterViewInit {
     debugCanvas?: HTMLCanvasElement;
     trackCanvas?: HTMLCanvasElement;
 
-    inputSeed = '';
-    trackWidth = '1000';
-    trackHeight = '1000';
-    inputSegments = '2';
+    inputSeed: string;
+    trackWidth: string;
+    trackHeight: string;
+    inputSegments: string;
+    generatorMode: GeneratorMode;
     outputSeed = '';
     generationTime = 0;
     generationIterations = 0;
@@ -29,10 +32,14 @@ export class AppComponent implements AfterViewInit {
     private track!: Track;
 
     startGate: Line = [[500, 500], [510, 500]];
-    endGate: Line = [[0, 0], [0 + 10, 0]];
+    endGate: Line = [[10, 10], [10 + 10, 10]];
 
-    constructor() {
-
+    constructor(private storageService: StorageService) {
+        this.generatorMode = this.storageService.load('track_gen_mode', 'random');
+        this.inputSeed = this.storageService.load('track_seed', '');
+        this.trackWidth = this.storageService.load('track_width', '1000');
+        this.trackHeight = this.storageService.load('track_height', '1000');
+        this.inputSegments = this.storageService.load('track_segments', '2');
     }
 
     ngAfterViewInit(): void {
@@ -42,17 +49,26 @@ export class AppComponent implements AfterViewInit {
         this.generateTrack();
     }
 
+    saveConfig() {
+        this.storageService.save('track_gen_mode', this.generatorMode);
+        this.storageService.save('track_seed', this.inputSeed);
+        this.storageService.save('track_width', this.trackWidth);
+        this.storageService.save('track_height', this.trackHeight);
+        this.storageService.save('track_segments', this.inputSegments);
+    }
+
     generateTrack() {
         const width = +this.trackWidth;
         const height = +this.trackHeight;
 
         this.startGate = [[width * 0.5, height * 0.5], [width * 0.5 + 10, height * 0.5]];
+        this.endGate = [[width * 0.5, height * 0.5 + 10], [width * 0.5 + 10, height * 0.5 + 10]];
 
-        this.debugCanvas!.width = width + 1;
-        this.debugCanvas!.height = height + 1;
+        this.debugCanvas!.width = width;
+        this.debugCanvas!.height = height;
 
-        this.trackCanvas!.width = width + 1;
-        this.trackCanvas!.height = height + 1;
+        this.trackCanvas!.width = width;
+        this.trackCanvas!.height = height;
 
         this.track = new Track(
             width,
@@ -60,18 +76,19 @@ export class AppComponent implements AfterViewInit {
             this.debugCanvas!,
             this.trackCanvas!,
             [
-                // [[width * 0.5, height * 0.5], [width * 0.5 + 10, height * 0.5]],
-                // [[0, 0], [0 + 10, 0]],
+                this.startGate,
             ],
         );
 
-        this.track.debugDrawGate(this.startGate, '#f80', '#088');
-        this.track.debugDrawGate(this.endGate, '#f80', '#088');
+        this.track.drawGate(this.track.debugCanvasContext, this.startGate, '#880', '#08f');
+        this.track.drawGate(this.track.debugCanvasContext, this.endGate, '#f80', '#088');
 
         this.addSegments();
     }
 
     addSegments() {
+        this.saveConfig();
+
         let startGate = this.track.lastGate();
         if (startGate === undefined) startGate = this.startGate;
 
@@ -79,6 +96,7 @@ export class AppComponent implements AfterViewInit {
             this.track,
             startGate,
             this.endGate,
+            this.generatorMode,
             this.inputSeed,
         );
 
@@ -89,5 +107,15 @@ export class AppComponent implements AfterViewInit {
         const gen = trackGenerator.generate();
         this.generationTime = gen[0];
         this.generationIterations = gen[1];
+
+        this.track.drawTrack();
+    }
+
+    deleteSegments() {
+        this.saveConfig();
+
+        this.track.deleteLastGates(+this.inputSegments);
+
+        this.track.drawTrack();
     }
 }

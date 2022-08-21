@@ -8,31 +8,31 @@ export class Track {
     trackCanvasContext: CanvasRenderingContext2D;
     gates: Line[];
 
-    debugDrawPoint(point: Point, color: string = '#fff') {
-        if (this.debugCanvasContext === null) return;
+    drawPoint(context: CanvasRenderingContext2D | null, point: Point, color: string = '#fff') {
+        if (context === null) return;
 
-        this.debugCanvasContext.fillStyle = color;
-        this.debugCanvasContext.fillRect(point[0] - 1, point[1] - 1, 2, 2);
+        context.fillStyle = color;
+        context.fillRect(point[0] - 1, point[1] - 1, 2, 2);
     }
 
-    debugDrawGate(gate: Line, leftColor = '#f00', rightColor = '#0f0') {
-        if (this.debugCanvasContext === null) return;
+    drawGate(context: CanvasRenderingContext2D | null, gate: Line, leftColor = '#f00', rightColor = '#0f0') {
+        if (context === null) return;
 
-        this.debugDrawPoint(gate[0], leftColor);
-        this.debugDrawPoint(gate[1], rightColor);
+        this.drawPoint(context, gate[0], leftColor);
+        this.drawPoint(context, gate[1], rightColor);
     }
 
-    debugDrawLine(line: Line, color = '#f00') {
-        if (this.debugCanvasContext === null) return;
+    drawLine(context: CanvasRenderingContext2D | null, line: Line, color = '#f00') {
+        if (context === null) return;
 
-        this.debugCanvasContext.strokeStyle = color;
+        context.strokeStyle = color;
 
-        this.debugCanvasContext.beginPath();
+        context.beginPath();
 
-        this.debugCanvasContext.moveTo(line[0][0], line[0][1]);
-        this.debugCanvasContext.lineTo(line[1][0], line[1][1]);
+        context.moveTo(line[0][0], line[0][1]);
+        context.lineTo(line[1][0], line[1][1]);
 
-        this.debugCanvasContext.stroke();
+        context.stroke();
     }
 
     constructor(
@@ -58,5 +58,20 @@ export class Track {
 
     lastGate(): Line {
         return this.gates[this.gates.length - 1];
+    }
+
+    deleteLastGates(n: number): void {
+        this.gates.splice(this.gates.length - n, n);
+    }
+
+    drawTrack(off: number = 0, n: number = -1): void {
+        // this.trackCanvasContext.clearRect(0, 0, this.width, this.height);
+        // this.trackCanvasContext.fillStyle = '#fff';
+        this.trackCanvasContext.clearRect(0, 0, this.width, this.height);
+
+        if (n < 0) n = this.gates.length;
+        for (let i = off; i < n; i++) {
+            this.drawGate(this.trackCanvasContext, this.gates[i]);
+        }
     }
 }
