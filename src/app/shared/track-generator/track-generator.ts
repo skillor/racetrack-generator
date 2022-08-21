@@ -315,10 +315,10 @@ export class TrackGenerator {
                 const newAngle = this.vectorAngle(d);
                 const newGate = this.pointToGate(newPos, newAngle, this.minGateHalfSize);
 
-                const newgridPos = this.posAngleToGrid(newPos, newAngle);
+                const newGridPos = this.posAngleToGrid(newPos, newAngle);
 
-                if (this.isValidGridPos(newgridPos, gridSize) &&
-                    !visited[newgridPos[0]][newgridPos[1]][newgridPos[2]] &&
+                if (this.isValidGridPos(newGridPos, gridSize) &&
+                    !visited[newGridPos[0]][newGridPos[1]][newGridPos[2]] &&
                     !this.gateHasCollision(currentGate, newGate, traversedGates)) {
 
                     gates.push([newGate, traversedGates.concat([currentGate])]);
@@ -334,9 +334,12 @@ export class TrackGenerator {
         const startTime = new Date().getTime();
 
         const solution = this.findTrackDFS();
+
+        const generationTime = new Date().getTime() - startTime;
+
         if (solution[0].length == 0) {
             console.log('path was not found!');
-            return [-1, solution[2]];
+            return [generationTime, solution[2]];
         }
 
         const gates = solution[0];
@@ -350,9 +353,6 @@ export class TrackGenerator {
             if (i > 0) this.track.drawGate(this.track.debugCanvasContext, gates[i]);
             // this.track.drawLine(this.track.debugCanvasContext, [this.gridPostoPos(path[i]), this.gridPostoPos(path[i - 1])]);
         }
-
-
-        const generationTime = new Date().getTime() - startTime;
 
         return [generationTime, solution[2]];
     }
