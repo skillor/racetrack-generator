@@ -61,8 +61,8 @@ export class AppComponent implements AfterViewInit {
         const width = +this.trackWidth;
         const height = +this.trackHeight;
 
-        this.startGate = [[width * 0.5, height * 0.5], [width * 0.5 + 10, height * 0.5]];
-        this.endGate = [[width * 0.5, height * 0.5 + 10], [width * 0.5 + 10, height * 0.5 + 10]];
+        this.startGate = [[10, 0], [0, 0]];
+        this.endGate = [[width - 10, 0], [width, 0]];
 
         this.debugCanvas!.width = width;
         this.debugCanvas!.height = height;

@@ -216,7 +216,7 @@ export class TrackGenerator {
         }
 
         angles.sort((a, b) => {
-            return this.normalizeAngle(wantedAngle - a) - this.normalizeAngle(wantedAngle - b);
+            return (wantedAngle - a) - (wantedAngle - b);
         });
 
         const vectors: Point[] = [];
@@ -236,7 +236,7 @@ export class TrackGenerator {
 
     private pointAngleMatches(point1: Point, angle1: number, point2: Point, angle2: number): boolean {
         const d = this.lineLengthUnnormed([point1, point2]);
-        if (d > 1) return false;
+        if (d > 10) return false;
         const k = Math.abs(this.normalizeAngle(angle1 - angle2));
         if (k > 0.1) return false;
         return true;
@@ -252,7 +252,7 @@ export class TrackGenerator {
             gridPos[2] >= 0 && gridPos[2] < gridSize[2];
     }
 
-    private findTrackDFS(): [Line[], boolean, number] {
+    private findTrackDFS(iterationCount = 0): [Line[], boolean, number] {
         const gates: [Line, Line[]][] = [];
 
         const endPos = this.gateCenterPos(this.endGate);
@@ -276,13 +276,11 @@ export class TrackGenerator {
 
         gates.push([this.startGate, []]);
 
-        let iterationCount = 0;
-
         while (true) {
             let current = gates.pop();
             if (current === undefined) {
                 this.angleComputeFactor += 1;
-                return this.findTrackDFS();
+                return this.findTrackDFS(iterationCount);
                 // current = [this.startGate, []];
                 // return [[], false, iterationCount]
             };
@@ -301,16 +299,13 @@ export class TrackGenerator {
                 return [traversedGates, foundEnd, iterationCount];
             }
 
-            let diretions;
+            let diretions = this.predictDirections(currentPos, endPos, currentAngle);
             switch (this.mode) {
-                case 'best':
-                    diretions = this.predictDirections(currentPos, endPos, currentAngle);
-                    break;
                 case 'worst':
-                    diretions = this.predictDirections(currentPos, endPos, currentAngle).reverse();
+                    diretions = diretions.reverse();
                     break;
                 case 'random':
-                    diretions = this.randomShuffle(this.predictDirections(currentPos, endPos, currentAngle));
+                    diretions = this.randomShuffle(diretions);
                     break;
             }
 
