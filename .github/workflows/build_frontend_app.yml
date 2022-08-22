@@ -30,7 +30,6 @@ jobs:
         npm install esbuild
         npm i
         npx ng build --configuration production-hashed --source-map false --aot true --build-optimizer true --optimization true --vendor-chunk false --base-href /${{ github.event.repository.name }}/app/
-      working-directory: ./frontend
     - name: Copy dist to webserver static
       run: |
         rm -rf ./docs/app
