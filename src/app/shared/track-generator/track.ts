@@ -4,25 +4,25 @@ import { Point } from "./point";
 export class Track {
     width: number;
     height: number;
-    debugCanvasContext: CanvasRenderingContext2D | null = null;
-    trackCanvasContext: CanvasRenderingContext2D;
+    debugCanvasContext: any | null = null;
+    trackCanvasContext: any | null = null;
     gates: Line[];
 
-    drawPoint(context: CanvasRenderingContext2D | null, point: Point, color: string = '#fff') {
+    drawPoint(context: any | null, point: Point, color: string = '#fff') {
         if (context === null) return;
 
         context.fillStyle = color;
         context.fillRect(point[0] - 1, point[1] - 1, 2, 2);
     }
 
-    drawGate(context: CanvasRenderingContext2D | null, gate: Line, leftColor = '#f00', rightColor = '#0f0') {
+    drawGate(context: any | null, gate: Line, leftColor = '#f00', rightColor = '#0f0') {
         if (context === null) return;
 
         this.drawPoint(context, gate[0], leftColor);
         this.drawPoint(context, gate[1], rightColor);
     }
 
-    drawLine(context: CanvasRenderingContext2D | null, line: Line, color = '#f00') {
+    drawLine(context: any | null, line: Line, color = '#f00') {
         if (context === null) return;
 
         context.strokeStyle = color;
@@ -38,18 +38,27 @@ export class Track {
     constructor(
         width: number,
         height: number,
-        debugCanvas: HTMLCanvasElement | null = null,
-        trackCanvas: HTMLCanvasElement,
+        debugCanvas: any | null = null,
+        trackCanvas: any | null = null,
         gates: Line[],
     ) {
         this.width = width;
         this.height = height;
 
-        this.trackCanvasContext = trackCanvas.getContext("2d")!;
+        if (trackCanvas !== null) this.trackCanvasContext = trackCanvas.getContext("2d")!;
 
         if (debugCanvas !== null) this.debugCanvasContext = debugCanvas.getContext("2d");
 
         this.gates = gates;
+    }
+
+    serialize(): string {
+        return JSON.stringify({ width: this.width, height: this.height, gates: this.gates });
+    }
+
+    static unserialize(json: string): Track {
+        const obj = JSON.parse(json);
+        return new Track(obj.width, obj.height, null, null, obj.gates);
     }
 
     firstGate(): Line {
@@ -65,8 +74,7 @@ export class Track {
     }
 
     drawTrack(off: number = 0, n: number = -1): void {
-        // this.trackCanvasContext.clearRect(0, 0, this.width, this.height);
-        // this.trackCanvasContext.fillStyle = '#fff';
+        if (this.trackCanvasContext === null) return;
         this.trackCanvasContext.clearRect(0, 0, this.width, this.height);
 
         if (n < 0) n = this.gates.length;

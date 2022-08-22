@@ -105,11 +105,12 @@ export class AppComponent implements AfterViewInit {
 
         this.outputSeed = trackGenerator.seed;
 
-        const gen = trackGenerator.generate();
-        this.generationTime = gen[0];
-        this.generationIterations = gen[1];
+        trackGenerator.workerGenerate().subscribe((gen) => {
+            this.generationTime = gen[0];
+            this.generationIterations = gen[1];
 
-        this.track.drawTrack();
+            this.track.drawTrack();
+        });
     }
 
     deleteSegments() {

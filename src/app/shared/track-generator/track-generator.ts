@@ -1,3 +1,4 @@
+import { fromEvent, map, Observable, of } from "rxjs";
 import * as seedrandom from "seedrandom";
 import { GeneratorMode } from "./generator-modes";
 import { Line } from "./line";
@@ -129,12 +130,11 @@ export class TrackGenerator {
         ]) {
             const currentGates = this.track.gates.concat(gates);
             for (let i = currentGates.length - 1; i > 1; i--) {
-                if (this.lineIntersectionPoint(
-                    [connection[0], connection[1]], [currentGates[i][0], currentGates[i - 1][0]],
-                ) !== null) return true;
-                if (this.lineIntersectionPoint(
-                    [connection[0], connection[1]], [currentGates[i][1], currentGates[i - 1][1]],
-                ) !== null) return true;
+                for (let j of [0, 1] as (0 | 1)[]) {
+                    if (this.lineIntersectionPoint(
+                        [connection[0], connection[1]], [currentGates[i][j], currentGates[i - 1][j]],
+                    ) !== null) return true;
+                }
             }
         }
         return false;
@@ -162,6 +162,15 @@ export class TrackGenerator {
         if (seed === '') seed = ('' + Math.random()).substring(2);
         this.seed = seed;
         this.random = seedrandom(seed);
+    }
+
+    serialize(): string {
+        return JSON.stringify({ track: this.track.serialize(), start: this.startGate, end: this.endGate, mode: this.mode, seed: this.seed });
+    }
+
+    static unserialize(json: string): TrackGenerator {
+        const obj = JSON.parse(json);
+        return new TrackGenerator(Track.unserialize(obj.track), obj.start, obj.end, obj.mode, obj.seed);
     }
 
     private calcMaxGateHalfSize(pos: Point, angle: number): number {
@@ -242,17 +251,17 @@ export class TrackGenerator {
         return true;
     }
 
-    private posAngleToGrid(pos: Point, angle: number): [number,  number, number] {
+    private posAngleToGrid(pos: Point, angle: number): [number, number, number] {
         return [Math.floor(pos[1] * this.yComputeFactor), Math.floor(pos[0] * this.xComputeFactor), Math.floor(this.normalizeAngle10(angle) * this.angleComputeFactor)];
     }
 
-    private isValidGridPos(gridPos: [number,  number, number], gridSize: [number,  number, number]): boolean {
+    private isValidGridPos(gridPos: [number, number, number], gridSize: [number, number, number]): boolean {
         return gridPos[0] >= 0 && gridPos[0] < gridSize[0] &&
             gridPos[1] >= 0 && gridPos[1] < gridSize[1] &&
             gridPos[2] >= 0 && gridPos[2] < gridSize[2];
     }
 
-    private findTrackDFS(iterationCount = 0): [Line[], boolean, number] {
+    findTrackDFS(iterationCount = 0): [Line[], boolean, number] {
         const gates: [Line, Line[]][] = [];
 
         const endPos = this.gateCenterPos(this.endGate);
@@ -357,5 +366,52 @@ export class TrackGenerator {
         }
 
         return [generationTime, solution[2]];
+    }
+
+    private findTrackDFSWorker(): Observable<[Line[], boolean, number]> {
+        if (typeof Worker !== 'undefined') {
+            // Create a new
+            const worker = new Worker(new URL('./track-generator.worker', import.meta.url));
+            const subscribtion = fromEvent(worker, 'message').pipe(
+                map((event: any) => {
+                    return event.data;
+                })
+            );
+            worker.postMessage(this.serialize());
+            return subscribtion;
+        } else {
+            // Web Workers are not supported in this environment.
+            // You should add a fallback so that your program still executes correctly.
+            return of(this.findTrackDFS());
+        }
+    }
+
+    workerGenerate(): Observable<[number, number]> {
+        const startTime = new Date().getTime();
+
+        return this.findTrackDFSWorker().pipe(
+            map((solution) => {
+                const generationTime = new Date().getTime() - startTime;
+
+                if (solution[0].length == 0) {
+                    console.log('path was not found!');
+                    return [generationTime, solution[2]];
+                }
+
+                const gates = solution[0];
+                if (solution[1]) console.log('path is finished');
+
+                const n = gates.length;
+
+                for (let i = 0; i < n; i++) {
+                    if (i > 0) this.track.gates.push(gates[i]);
+
+                    if (i > 0) this.track.drawGate(this.track.debugCanvasContext, gates[i]);
+                    // this.track.drawLine(this.track.debugCanvasContext, [this.gridPostoPos(path[i]), this.gridPostoPos(path[i - 1])]);
+                }
+
+                return [generationTime, solution[2]];
+            })
+        );
     }
 }
