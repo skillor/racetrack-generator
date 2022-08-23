@@ -50,7 +50,10 @@
                         <label class="label">
                             <span class="label-text">{{prop}}</span>
                         </label>
-                        <input [(ngModel)]="settingsAsAny()[prop]" type="text" placeholder="" class="input input-bordered w-full max-w-xs" />
+                        <ng-container [ngSwitch]="settings.getType(settings.getProperty(prop))">
+                            <input *ngSwitchCase="'number'" [(ngModel)]="settingsAsAny()[prop]" type="number" placeholder="" class="input input-bordered w-full max-w-xs" />
+                            <input *ngSwitchDefault [(ngModel)]="settingsAsAny()[prop]" type="text" placeholder="" class="input input-bordered w-full max-w-xs" />
+                        </ng-container>
                     </div>
                 </div>
 

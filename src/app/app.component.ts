@@ -32,8 +32,8 @@ export class AppComponent implements AfterViewInit {
 
     private track!: Track;
 
-    startGate: Line = [[500, 500], [510, 500]];
-    endGate: Line = [[10, 10], [10 + 10, 10]];
+    startGate: Line = [[10, 0], [0, 0]];
+    endGate: Line = [[20, 0], [30, 0]];
 
     constructor(private storageService: StorageService) {
         this.generatorMode = this.storageService.load('track_gen_mode', 'random');
@@ -65,9 +65,6 @@ export class AppComponent implements AfterViewInit {
     generateTrack() {
         const width = +this.trackWidth;
         const height = +this.trackHeight;
-
-        this.startGate = [[10, 0], [0, 0]];
-        this.endGate = [[width - 10, 0], [width, 0]];
 
         this.debugCanvas!.width = width;
         this.debugCanvas!.height = height;
@@ -109,7 +106,7 @@ export class AppComponent implements AfterViewInit {
 
         this.outputSeed = trackGenerator.seed;
 
-        trackGenerator.workerGenerate().subscribe((gen) => {
+        trackGenerator.generate(false).subscribe((gen) => {
             this.generationTime = gen[0];
             this.generationIterations = gen[1];
 

@@ -260,7 +260,7 @@ export class TrackGenerator {
 
     private pointAngleMatches(point1: Point, angle1: number, point2: Point, angle2: number): boolean {
         const d = this.lineLengthUnnormed([point1, point2]);
-        if (d > 10) return false;
+        if (d > 19) return false;
         const k = Math.abs(this.normalizeAngle(angle1 - angle2));
         if (k > 0.3) return false;
         return true;
@@ -309,8 +309,8 @@ export class TrackGenerator {
         while (true) {
             let current = gates.pop();
             if (current === undefined) {
+                if (trys >= +this.settings.maxTrys - 1) return [[], false, iterationCount];
                 this.settings.angleComputeFactor += 1;
-                if (trys > +this.settings.maxTrys) return [[], false, iterationCount];
                 return this.findTrackDFS(iterationCount, trys + 1);
             };
             const currentGate = current[0];
@@ -369,35 +369,8 @@ export class TrackGenerator {
         }
     }
 
-    generate(): [number, number] {
-        const startTime = new Date().getTime();
-
-        const solution = this.findTrackDFS();
-
-        const generationTime = new Date().getTime() - startTime;
-
-        if (solution[0].length == 0) {
-            console.log('path was not found!');
-            return [generationTime, solution[2]];
-        }
-
-        const gates = solution[0];
-        if (solution[1]) console.log('path is finished');
-
-        const n = gates.length;
-
-        for (let i = 0; i < n; i++) {
-            if (i > 0) this.track.gates.push(gates[i]);
-
-            if (i > 0) this.track.drawGate(this.track.debugCanvasContext, gates[i]);
-            // this.track.drawLine(this.track.debugCanvasContext, [this.gridPostoPos(path[i]), this.gridPostoPos(path[i - 1])]);
-        }
-
-        return [generationTime, solution[2]];
-    }
-
-    private findTrackDFSWorker(): Observable<[Line[], boolean, number]> {
-        if (typeof Worker !== 'undefined') {
+    private findTrackDFSWorker(background = true): Observable<[Line[], boolean, number]> {
+        if (background && typeof Worker !== 'undefined') {
             // Create a new Worker
             const worker = new Worker(new URL('./track-generator.worker', import.meta.url));
             const workerSubscription = fromEvent(worker, 'message').pipe(
@@ -416,10 +389,10 @@ export class TrackGenerator {
         }
     }
 
-    workerGenerate(): Observable<[number, number]> {
+    generate(background = true): Observable<[number, number]> {
         const startTime = new Date().getTime();
 
-        return this.findTrackDFSWorker().pipe(
+        return this.findTrackDFSWorker(background).pipe(
             map((solution) => {
                 const generationTime = new Date().getTime() - startTime;
 
@@ -436,7 +409,7 @@ export class TrackGenerator {
                 for (let i = 0; i < n; i++) {
                     if (i > 0) this.track.gates.push(gates[i]);
 
-                    if (i > 0) this.track.drawGate(this.track.debugCanvasContext, gates[i]);
+                    // if (i > 0) this.track.drawGate(this.track.debugCanvasContext, gates[i]);
                     // this.track.drawLine(this.track.debugCanvasContext, [this.gridPostoPos(path[i]), this.gridPostoPos(path[i - 1])]);
                 }
 
