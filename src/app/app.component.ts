@@ -2,6 +2,7 @@ import { Component, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { StorageService } from './shared/storage/storage.service';
 import { GeneratorMode } from './shared/track-generator/generator-modes';
 import { Line } from './shared/track-generator/line';
+import { Settings } from './shared/track-generator/settings';
 import { Track } from './shared/track-generator/track';
 import { TrackGenerator } from './shared/track-generator/track-generator';
 
@@ -23,9 +24,9 @@ export class AppComponent implements AfterViewInit {
     inputSeed: string;
     trackWidth: string;
     trackHeight: string;
-    inputSegments: string;
     generatorMode: GeneratorMode;
     outputSeed = '';
+    settings: Settings;
     generationTime = 0;
     generationIterations = 0;
 
@@ -39,7 +40,7 @@ export class AppComponent implements AfterViewInit {
         this.inputSeed = this.storageService.load('track_seed', '');
         this.trackWidth = this.storageService.load('track_width', '200');
         this.trackHeight = this.storageService.load('track_height', '200');
-        this.inputSegments = this.storageService.load('track_segments', '2');
+        this.settings = Settings.unserialize(this.storageService.load('track_settings', '{}'));
     }
 
     ngAfterViewInit(): void {
@@ -49,12 +50,16 @@ export class AppComponent implements AfterViewInit {
         this.generateTrack();
     }
 
+    settingsAsAny(): any {
+        return <any>this.settings;
+    }
+
     saveConfig() {
         this.storageService.save('track_gen_mode', this.generatorMode);
         this.storageService.save('track_seed', this.inputSeed);
         this.storageService.save('track_width', this.trackWidth);
         this.storageService.save('track_height', this.trackHeight);
-        this.storageService.save('track_segments', this.inputSegments);
+        this.storageService.save('track_settings', this.settings.serialize());
     }
 
     generateTrack() {
@@ -99,9 +104,8 @@ export class AppComponent implements AfterViewInit {
             this.endGate,
             this.generatorMode,
             this.inputSeed,
+            this.settings,
         );
-
-        trackGenerator.settings.maxSegments = +this.inputSegments;
 
         this.outputSeed = trackGenerator.seed;
 
@@ -116,7 +120,7 @@ export class AppComponent implements AfterViewInit {
     deleteSegments() {
         this.saveConfig();
 
-        this.track.deleteLastGates(+this.inputSegments);
+        this.track.deleteLastGates(+this.settings.maxSegments);
 
         this.track.drawTrack();
     }

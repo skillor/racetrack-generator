@@ -1,4 +1,4 @@
-import { fromEvent, map, Observable, of } from "rxjs";
+import { fromEvent, map, Observable, of, take } from "rxjs";
 import * as seedrandom from "seedrandom";
 import { GeneratorMode } from "./generator-modes";
 import { Line } from "./line";
@@ -23,6 +23,10 @@ export class TrackGenerator {
             gate[0][0] + (gate[1][0] - gate[0][0]) * 0.5,
             gate[0][1] + (gate[1][1] - gate[0][1]) * 0.5,
         ];
+    }
+
+    private degreesToRadians(degrees: number): number {
+        return degrees * (Math.PI/180);
     }
 
     private normalizeAngle(angle: number): number {
@@ -74,6 +78,15 @@ export class TrackGenerator {
 
     private pointTravel(point: Point, angle: number, distance: number): Point {
         return [point[0] + Math.cos(angle) * distance, point[1] + Math.sin(angle) * distance];
+    }
+
+    private boundsLines(): Line[] {
+        return [
+            [[0, 0], [this.track.width, 0]],
+            [[0, 0], [0, this.track.height]],
+            [[this.track.width, this.track.height], [this.track.width, 0]],
+            [[this.track.width, this.track.height], [0, this.track.height]],
+        ]
     }
 
     private pointOutBounds(point: Point): boolean {
@@ -182,30 +195,24 @@ export class TrackGenerator {
 
     private calcMaxGateHalfSize(pos: Point, angle: number): number {
         let line = this.pointToGate(pos, angle, this.track.width * this.track.height);
-        let minPoint = pos;
-        let minDistance = 1000;
+        // let minPoint = pos;
+        let minDistance = +this.settings.maxGateHalfSize;
         let collision;
-        for (let i = this.track.gates.length - 1; i > 1; i--) {
-            collision = this.lineIntersectionPoint(
-                [line[0], line[1]],
-                [this.track.gates[i][0], this.track.gates[i - 1][0]],
-            );
-            if (collision !== null) {
-                const distance = this.lineLength([collision, pos]);
-                if (distance < minDistance) {
-                    minPoint = collision;
-                    minDistance = distance;
-                }
-            }
-            collision = this.lineIntersectionPoint(
-                [line[0], line[1]],
-                [this.track.gates[i][1], this.track.gates[i - 1][1]],
-            );
-            if (collision !== null) {
-                const distance = this.lineLength([collision, pos]);
-                if (distance < minDistance) {
-                    minPoint = collision;
-                    minDistance = distance;
+
+        const gates = this.track.gates.concat(this.boundsLines());
+
+        for (let i = gates.length - 1; i > 1; i--) {
+            for (let j of [0, 1] as (0 | 1)[]) {
+                collision = this.lineIntersectionPoint(
+                    [line[0], line[1]],
+                    [gates[i][j], gates[i - 1][j]],
+                );
+                if (collision !== null) {
+                    const distance = this.lineLength([collision, pos]);
+                    if (distance < 0 || distance < minDistance) {
+                        // minPoint = collision;
+                        minDistance = distance;
+                    }
                 }
             }
         }
@@ -222,12 +229,13 @@ export class TrackGenerator {
             this.normalizeAngle(currentAngle)
         ];
 
-        for (let i = this.settings.curveComputeCount - 1; i > 0; i--) {
+        for (let i = +this.settings.curveComputeCount - 1; i > 0; i--) {
+            const o = ((i * this.degreesToRadians(+this.settings.maxCurve)) / +this.settings.curveComputeCount);
             angles.push(
-                this.normalizeAngle(currentAngle + ((i * this.settings.maxCurve) / this.settings.curveComputeCount))
+                this.normalizeAngle(currentAngle + o)
             );
             angles.push(
-                this.normalizeAngle(currentAngle - ((i * this.settings.maxCurve) / this.settings.curveComputeCount))
+                this.normalizeAngle(currentAngle - o)
             );
         }
 
@@ -239,7 +247,7 @@ export class TrackGenerator {
 
         for (const angle of angles) {
             vectors.push(
-                this.angleToVectorMultiplied(angle, this.settings.gateDistance)
+                this.angleToVectorMultiplied(angle, +this.settings.gateDistance)
             );
         }
 
@@ -254,15 +262,15 @@ export class TrackGenerator {
         const d = this.lineLengthUnnormed([point1, point2]);
         if (d > 10) return false;
         const k = Math.abs(this.normalizeAngle(angle1 - angle2));
-        if (k > 0.1) return false;
+        if (k > 0.3) return false;
         return true;
     }
 
     private posAngleToGrid(pos: Point, angle: number): [number, number, number] {
         return [
-            Math.floor(pos[1] * this.settings.yComputeFactor),
-            Math.floor(pos[0] * this.settings.xComputeFactor),
-            Math.floor(this.normalizeAngle10(angle) * this.settings.angleComputeFactor)
+            Math.floor(pos[1] * +this.settings.yComputeFactor),
+            Math.floor(pos[0] * +this.settings.xComputeFactor),
+            Math.floor(this.normalizeAngle10(angle) * +this.settings.angleComputeFactor)
         ];
     }
 
@@ -273,6 +281,8 @@ export class TrackGenerator {
     }
 
     findTrackDFS(iterationCount = 0, trys = 0): [Line[], boolean, number] {
+        this.settings.validate();
+
         const gates: [Line, Line[]][] = [];
 
         const endPos = this.gateCenterPos(this.endGate);
@@ -300,7 +310,7 @@ export class TrackGenerator {
             let current = gates.pop();
             if (current === undefined) {
                 this.settings.angleComputeFactor += 1;
-                if (trys > this.settings.maxTrys) return [[], false, iterationCount];
+                if (trys > +this.settings.maxTrys) return [[], false, iterationCount];
                 return this.findTrackDFS(iterationCount, trys + 1);
             };
             const currentGate = current[0];
@@ -313,8 +323,10 @@ export class TrackGenerator {
             visited[currentGridPos[0]][currentGridPos[1]][currentGridPos[2]] = true;
 
             const foundEnd = this.pointAngleMatches(currentPos, currentAngle, endPos, endAngle);
-            if (foundEnd ||
-                traversedGates.length > this.settings.maxSegments) {
+            const segementCount = traversedGates.length;
+            if (foundEnd && segementCount >= +this.settings.minSegments ||
+                segementCount >= +this.settings.maxSegments) {
+                    console.log(segementCount + ' segments');
                 return [traversedGates, foundEnd, iterationCount];
             }
 
@@ -332,7 +344,15 @@ export class TrackGenerator {
                 const newPos: Point = [currentPos[0] + d[0], currentPos[1] + d[1]];
 
                 const newAngle = this.vectorAngle(d);
-                const newGate = this.pointToGate(newPos, newAngle, this.settings.minGateHalfSize);
+
+                let size = Math.min(+this.settings.maxGateHalfSize, this.calcMaxGateHalfSize(newPos, newAngle));
+                if (size > +this.settings.minGateHalfSize) size = +this.settings.minGateHalfSize + (this.random() * (size - +this.settings.minGateHalfSize));
+                // if (size > +this.settings.minGateHalfSize) size = +this.settings.minGateHalfSize + (size - +this.settings.minGateHalfSize);
+                // if (size < +this.settings.minGateHalfSize) console.log('wtf');
+                size = Math.max(+this.settings.minGateHalfSize, size);
+
+                // const newGate = this.pointToGate(newPos, newAngle, +this.settings.minGateHalfSize);
+                const newGate = this.pointToGate(newPos, newAngle, size);
 
                 const newGridPos = this.posAngleToGrid(newPos, newAngle);
 
@@ -345,7 +365,7 @@ export class TrackGenerator {
             }
 
             iterationCount++;
-            if (iterationCount > this.settings.maxIterations) return [[], false, iterationCount];
+            if (iterationCount > +this.settings.maxIterations) return [[], false, iterationCount];
         }
     }
 
@@ -378,15 +398,17 @@ export class TrackGenerator {
 
     private findTrackDFSWorker(): Observable<[Line[], boolean, number]> {
         if (typeof Worker !== 'undefined') {
-            // Create a new
+            // Create a new Worker
             const worker = new Worker(new URL('./track-generator.worker', import.meta.url));
-            const subscribtion = fromEvent(worker, 'message').pipe(
+            const workerSubscription = fromEvent(worker, 'message').pipe(
+                take(1),
                 map((event: any) => {
+                    console.log(event.data);
                     return event.data;
-                })
+                }),
             );
-            worker.postMessage(this.serialize());
-            return subscribtion;
+            worker.postMessage({ type: 'start', trackGenerator: this.serialize()});
+            return workerSubscription;
         } else {
             // Web Workers are not supported in this environment.
             // You should add a fallback so that your program still executes correctly.

@@ -2,32 +2,30 @@
     <div class="flex flex-row">
         <div class="form-control w-full max-w-xs">
             <label class="label">
-              <span class="label-text">Width</span>
+                <span class="label-text">Width</span>
             </label>
             <input [(ngModel)]="trackWidth" type="number" placeholder="" class="input input-bordered w-full max-w-xs" />
         </div>
         <div class="form-control w-full max-w-xs">
             <label class="label">
-              <span class="label-text">Height</span>
+                <span class="label-text">Height</span>
             </label>
-            <input [(ngModel)]="trackHeight" type="number" placeholder="" class="input input-bordered w-full max-w-xs" />
+            <input [(ngModel)]="trackHeight" type="number" placeholder=""
+                class="input input-bordered w-full max-w-xs" />
         </div>
         <div class="form-control w-full max-w-xs">
             <label class="label">
-              <span class="label-text">Segments</span>
-            </label>
-            <input [(ngModel)]="inputSegments" type="number" placeholder="" class="input input-bordered w-full max-w-xs" />
-        </div>
-        <div class="form-control w-full max-w-xs">
-            <label class="label">
-              <span class="label-text">Seed</span>
+                <span class="label-text">Seed</span>
             </label>
             <input [(ngModel)]="inputSeed" type="text" placeholder="" class="input input-bordered w-full max-w-xs" />
         </div>
         <div class="btn-group btn-group-vertical">
-            <button [class.btn-active]="generatorMode == 'best'" (click)="generatorMode = 'best'" class="btn">Best</button>
-            <button [class.btn-active]="generatorMode == 'random'" (click)="generatorMode = 'random'" class="btn">Random</button>
-            <button [class.btn-active]="generatorMode == 'worst'" (click)="generatorMode = 'worst'" class="btn">Worst</button>
+            <button [class.btn-active]="generatorMode == 'best'" (click)="generatorMode = 'best'"
+                class="btn">Best</button>
+            <button [class.btn-active]="generatorMode == 'random'" (click)="generatorMode = 'random'"
+                class="btn">Random</button>
+            <button [class.btn-active]="generatorMode == 'worst'" (click)="generatorMode = 'worst'"
+                class="btn">Worst</button>
         </div>
         <button class="btn" (click)="generateTrack()">Generate</button>
         <div class="flex flex-col">
@@ -38,6 +36,25 @@
             <div>Time: {{ generationTime }} ms</div>
             <div>Iterations: {{ generationIterations }}</div>
             <div>Seed: {{ outputSeed }}</div>
+        </div>
+    </div>
+    <div class="flex">
+        <div class="collapse collapse-arrow border border-secondary rounded-box">
+            <input type="checkbox" class="peer" />
+            <div class="collapse-title">
+                Settings
+            </div>
+            <div class="collapse-content">
+                <div class="flex flex-wrap">
+                    <div *ngFor="let prop of settings.getPropertyNames()" class="form-control max-w-xs">
+                        <label class="label">
+                            <span class="label-text">{{prop}}</span>
+                        </label>
+                        <input [(ngModel)]="settingsAsAny()[prop]" type="text" placeholder="" class="input input-bordered w-full max-w-xs" />
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
     <div>
