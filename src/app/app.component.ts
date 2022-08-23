@@ -18,8 +18,12 @@ export class AppComponent implements AfterViewInit {
     @ViewChild('trackCanvas', {static: false})
     trackCanvasRef?: ElementRef<HTMLCanvasElement>;
 
+    @ViewChild('collisionCanvas', {static: false})
+    collisionCanvasRef?: ElementRef<HTMLCanvasElement>;
+
     debugCanvas?: HTMLCanvasElement;
     trackCanvas?: HTMLCanvasElement;
+    collisionCanvas?: HTMLCanvasElement;
 
     inputSeed: string;
     trackWidth: string;
@@ -46,8 +50,83 @@ export class AppComponent implements AfterViewInit {
     ngAfterViewInit(): void {
         this.trackCanvas = this.trackCanvasRef!.nativeElement;
         this.debugCanvas = this.debugCanvasRef!.nativeElement;
+        this.collisionCanvas = this.collisionCanvasRef!.nativeElement;
 
+        this.initCollisionCanvas();
         this.generateTrack();
+    }
+
+    private initCollisionCanvas(): void {
+        this.collisionCanvas!.addEventListener('mousemove', (e) => {
+            this.canvasXY('move', e);
+        }, false);
+        this.collisionCanvas!.addEventListener('mousedown', (e) => {
+            this.canvasXY('down', e);
+        }, false);
+        this.collisionCanvas!.addEventListener('mouseup', (e) => {
+            this.canvasXY('up', e);
+        }, false);
+        this.collisionCanvas!.addEventListener('mouseout', (e) => {
+            this.canvasXY('out', e);
+        }, false);
+        this.collisionCanvas!.addEventListener('mouseenter', (e) => {
+            this.canvasXY('enter', e);
+        }, false);
+    }
+
+    private mouseDown = false;
+    private mouseInBounds = true;
+    private prevX = 0;
+    private prevY = 0;
+    private currX = 0;
+    private currY = 0;
+
+    private canvasXY(res: string, e: MouseEvent): void {
+        if (res == 'down') {
+            this.prevX = this.currX;
+            this.prevY = this.currY;
+            this.currX = e.clientX - this.collisionCanvas!.offsetLeft;
+            this.currY = e.clientY - this.collisionCanvas!.offsetTop;
+
+            this.mouseDown = true;
+        } else if (res == 'up') {
+            this.mouseDown = false;
+        } else if (res == 'out') {
+            this.mouseInBounds = false;
+        } else if (res == 'enter') {
+            this.mouseInBounds = true;
+        } else if (res == 'move') {
+            if (this.mouseDown) {
+                this.prevX = this.currX;
+                this.prevY = this.currY;
+                this.currX = e.clientX - this.collisionCanvas!.offsetLeft;
+                this.currY = e.clientY - this.collisionCanvas!.offsetTop;
+
+                if (this.mouseInBounds) {
+                    this.drawCanvas();
+                }
+            }
+        }
+    }
+
+    private colorMatch(color1: Uint8ClampedArray, color2: Uint8ClampedArray): boolean {
+        const n = color1.length;
+        if (n != color2.length) return false;
+        for (let i = 0; i < n; i++) {
+            if (color1[i] != color2[i]) return false;
+        }
+        return true;
+    }
+
+    private drawCanvas(): void {
+        const ctx = this.collisionCanvas!.getContext('2d');
+        ctx!.beginPath();
+        ctx!.moveTo(this.prevX, this.prevY);
+        ctx!.lineTo(this.currX, this.currY);
+        ctx!.strokeStyle = '#fff';
+        ctx!.lineWidth = 5;
+        ctx!.stroke();
+        ctx!.closePath();
     }
 
     settingsAsAny(): any {
@@ -72,12 +151,30 @@ export class AppComponent implements AfterViewInit {
         this.trackCanvas!.width = width;
         this.trackCanvas!.height = height;
 
+        const data = this.collisionCanvas!.getContext('2d')!.getImageData(0, 0, this.collisionCanvas!.width, this.collisionCanvas!.height);
+
+        this.collisionCanvas!.width = width;
+        this.collisionCanvas!.height = height;
+
+        this.collisionCanvas!.getContext('2d')!.putImageData(data, 0, 0);
+
         const startGate = JSON.parse(this.startGate);
         const endGate = JSON.parse(this.endGate);
+
+        const context = this.collisionCanvas!.getContext('2d')!;
+        const match =  new Uint8ClampedArray([0, 0, 0, 0]);
+        const collisions: boolean[][] = new Array<boolean[]>(height);
+        for (let y = 0; y < height; y++) {
+            collisions[y] = new Array<boolean>(width);
+            for (let x = 0; x < width; x++) {
+                collisions[y][x] = this.colorMatch(context.getImageData(x, y, x + 1, y + 1).data, match);
+            }
+        }
 
         this.track = new Track(
             width,
             height,
+            collisions,
             this.debugCanvas!,
             this.trackCanvas!,
             [

@@ -4,6 +4,7 @@ import { Point } from "./point";
 export class Track {
     width: number;
     height: number;
+    collisions: boolean[][];
     debugCanvasContext: any | null = null;
     trackCanvasContext: any | null = null;
     gates: Line[];
@@ -38,6 +39,7 @@ export class Track {
     constructor(
         width: number,
         height: number,
+        collisions: boolean[][],
         debugCanvas: any | null = null,
         trackCanvas: any | null = null,
         gates: Line[],
@@ -45,20 +47,20 @@ export class Track {
         this.width = width;
         this.height = height;
 
-        if (trackCanvas !== null) this.trackCanvasContext = trackCanvas.getContext("2d")!;
-
+        this.collisions = collisions;
+        if (trackCanvas !== null) this.trackCanvasContext = trackCanvas.getContext("2d");
         if (debugCanvas !== null) this.debugCanvasContext = debugCanvas.getContext("2d");
 
         this.gates = gates;
     }
 
     serialize(): string {
-        return JSON.stringify({ width: this.width, height: this.height, gates: this.gates });
+        return JSON.stringify({ width: this.width, height: this.height, collisions: this.collisions, gates: this.gates });
     }
 
     static unserialize(json: string): Track {
         const obj = JSON.parse(json);
-        return new Track(obj.width, obj.height, null, null, obj.gates);
+        return new Track(obj.width, obj.height, obj.collisions, null, null, obj.gates);
     }
 
     firstGate(): Line {
