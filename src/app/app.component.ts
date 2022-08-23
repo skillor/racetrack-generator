@@ -76,18 +76,9 @@ export class AppComponent implements AfterViewInit {
     }
 
     private mouseDown = false;
-    private prevX = 0;
-    private prevY = 0;
-    private currX = 0;
-    private currY = 0;
 
     private canvasXY(res: string, e: MouseEvent): void {
         if (res == 'down') {
-            this.prevX = this.currX;
-            this.prevY = this.currY;
-            this.currX = e.clientX - this.collisionCanvas!.offsetLeft;
-            this.currY = e.clientY - this.collisionCanvas!.offsetTop;
-
             this.mouseDown = true;
         } else if (res == 'up') {
             this.mouseDown = false;
@@ -95,12 +86,7 @@ export class AppComponent implements AfterViewInit {
             this.mouseDown = false;
         } else if (res == 'move') {
             if (this.mouseDown) {
-                this.prevX = this.currX;
-                this.prevY = this.currY;
-                this.currX = e.clientX - this.collisionCanvas!.offsetLeft;
-                this.currY = e.clientY - this.collisionCanvas!.offsetTop;
-
-                this.drawCanvas();
+                this.drawCanvas(e.clientX - this.collisionCanvas!.offsetLeft, e.clientY - this.collisionCanvas!.offsetTop);
             }
         }
     }
@@ -111,15 +97,10 @@ export class AppComponent implements AfterViewInit {
             color1[2] == color2[2];
     }
 
-    private drawCanvas(): void {
-        const ctx = this.collisionCanvas!.getContext('2d');
-        ctx!.beginPath();
-        ctx!.moveTo(this.prevX, this.prevY);
-        ctx!.lineTo(this.currX, this.currY);
-        ctx!.strokeStyle = this.drawColor;
-        ctx!.lineWidth = +this.strokeSize;
-        ctx!.stroke();
-        ctx!.closePath();
+    private drawCanvas(x: number, y: number): void {
+        const ctx = this.collisionCanvas!.getContext('2d')!;
+        ctx.fillStyle = this.drawColor;
+        ctx.fillRect(x - +this.strokeSize, y - +this.strokeSize, +this.strokeSize + 1, +this.strokeSize + 1);
     }
 
     clearCollisions(): void {
