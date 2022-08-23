@@ -1,4 +1,4 @@
 export const environment = {
-  production: true,
-  router_use_hash: true,
+    production: true,
+    router_use_hash: true,
 };
