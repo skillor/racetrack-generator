@@ -37,11 +37,14 @@ export class AppComponent implements AfterViewInit {
 
     private track!: Track;
 
-    startGate: string = '[[50, 10], [50, 0]]';
-    endGate: string = '[[60, 10], [60, 0]]';
+    startGate: string;
+    endGate: string;
 
     constructor(private storageService: StorageService) {
         this.strokeSize = this.storageService.load('stroke_size', '1');
+
+        this.startGate = this.storageService.load('track_start', '[[50, 10], [50, 0]]');
+        this.endGate = this.storageService.load('track_end', '[[60, 10], [60, 0]]');
 
         this.generatorMode = this.storageService.load('track_gen_mode', 'random');
         this.inputSeed = this.storageService.load('track_seed', '');
@@ -158,6 +161,9 @@ export class AppComponent implements AfterViewInit {
 
     saveConfig() {
         this.storageService.save('stroke_size', this.strokeSize);
+
+        this.storageService.save('track_start', this.startGate);
+        this.storageService.save('track_end', this.endGate);
 
         this.storageService.save('track_gen_mode', this.generatorMode);
         this.storageService.save('track_seed', this.inputSeed);
