@@ -106,7 +106,7 @@ export class AppComponent implements AfterViewInit {
 
         this.outputSeed = trackGenerator.seed;
 
-        trackGenerator.generate(false).subscribe((gen) => {
+        trackGenerator.generate(true).subscribe((gen) => {
             this.generationTime = gen[0];
             this.generationIterations = gen[1];
 
