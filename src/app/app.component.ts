@@ -120,6 +120,10 @@ export class AppComponent implements AfterViewInit {
         ctx!.closePath();
     }
 
+    clearCollisions(): void {
+        this.collisionCanvas!.width = this.collisionCanvas!.width;
+    }
+
     exportCollisions(): void {
         const a = document.createElement('a');
         const dt = this.collisionCanvas!.toDataURL('image/png');
