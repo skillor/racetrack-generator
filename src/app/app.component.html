@@ -75,19 +75,28 @@
         </div>
     </div>
     <div>
-        <canvas class="border" #trackCanvas></canvas>
-        <canvas class="border" #debugCanvas></canvas>
-        <canvas class="border" #collisionCanvas></canvas>
         <div>
-            <div class="form-control w-full max-w-xs">
-                <label class="label">
-                    <span class="label-text">Brush Size</span>
-                </label>
-                <input [(ngModel)]="strokeSize" type="number" placeholder=""
-                    class="input input-bordered w-full max-w-xs" />
+            <h4>Collisions</h4>
+            <canvas class="border" #collisionCanvas></canvas>
+            <div class="flex flex-wrap">
+                <button class="btn" (click)="importCollisions()">Import Image</button>
+                <button class="btn" (click)="exportCollisions()">Export Image</button>
+                <div class="form-control w-full max-w-xs">
+                    <label class="label">
+                        <span class="label-text">Brush Size</span>
+                    </label>
+                    <input [(ngModel)]="strokeSize" type="number" placeholder=""
+                        class="input input-bordered w-full max-w-xs" />
+                </div>
             </div>
-            <button class="btn" (click)="importCollisions()">Import Image</button>
-            <button class="btn" (click)="exportCollisions()">Export Image</button>
+        </div>
+        <div>
+            <h4>Track</h4>
+            <canvas class="border" #trackCanvas></canvas>
+        </div>
+        <div>
+            <h4>Debug</h4>
+            <canvas class="border" #debugCanvas></canvas>
         </div>
     </div>
 </div>
