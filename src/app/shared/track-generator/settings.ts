@@ -38,6 +38,10 @@ export class Settings {
         this.minSegments = Math.min(this.minSegments, this.maxSegments);
     }
 
+    copy(): Settings {
+        return Settings.unserialize(this.serialize());
+    }
+
     serialize(): string {
         return JSON.stringify(Object.assign({}, this));
     }

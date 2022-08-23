@@ -223,14 +223,13 @@ export class TrackGenerator {
     private predictDirections(startPos: Point, targetPos: Point, currentAngle: number): Point[] {
 
         const targetAngle = this.lineAngle([startPos, targetPos]);
-        const wantedAngle = this.normalizeAngle(targetAngle - currentAngle);
 
         const angles: number[] = [
             this.normalizeAngle(currentAngle)
         ];
 
         for (let i = +this.settings.curveComputeCount - 1; i > 0; i--) {
-            const o = ((i * this.degreesToRadians(+this.settings.maxCurve)) / +this.settings.curveComputeCount);
+            const o = (i * this.degreesToRadians(+this.settings.maxCurve)) / +this.settings.curveComputeCount;
             angles.push(
                 this.normalizeAngle(currentAngle + o)
             );
@@ -240,7 +239,7 @@ export class TrackGenerator {
         }
 
         angles.sort((a, b) => {
-            return (wantedAngle - a) - (wantedAngle - b);
+            return Math.abs(this.normalizeAngle(targetAngle - b)) - Math.abs(this.normalizeAngle(targetAngle - a));
         });
 
         const vectors: Point[] = [];
@@ -321,6 +320,8 @@ export class TrackGenerator {
 
             const currentGridPos = this.posAngleToGrid(currentPos, currentAngle);
             visited[currentGridPos[0]][currentGridPos[1]][currentGridPos[2]] = true;
+
+            this.track.drawPoint(this.track.debugCanvasContext, currentPos, '#fff');
 
             const foundEnd = this.pointAngleMatches(currentPos, currentAngle, endPos, endAngle);
             const segementCount = traversedGates.length;

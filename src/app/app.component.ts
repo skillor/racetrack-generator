@@ -101,7 +101,7 @@ export class AppComponent implements AfterViewInit {
             this.endGate,
             this.generatorMode,
             this.inputSeed,
-            this.settings,
+            this.settings.copy(),
         );
 
         this.outputSeed = trackGenerator.seed;
