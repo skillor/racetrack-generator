@@ -1,7 +1,6 @@
 import { Component, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
 import { StorageService } from './shared/storage/storage.service';
 import { GeneratorMode } from './shared/track-generator/generator-modes';
-import { Line } from './shared/track-generator/line';
 import { Settings } from './shared/track-generator/settings';
 import { Track } from './shared/track-generator/track';
 import { TrackGenerator } from './shared/track-generator/track-generator';
@@ -24,6 +23,7 @@ export class AppComponent implements AfterViewInit {
     debugCanvas?: HTMLCanvasElement;
     trackCanvas?: HTMLCanvasElement;
     collisionCanvas?: HTMLCanvasElement;
+    strokeSize: number;
 
     inputSeed: string;
     trackWidth: string;
@@ -40,6 +40,8 @@ export class AppComponent implements AfterViewInit {
     endGate: string = '[[60, 10], [60, 0]]';
 
     constructor(private storageService: StorageService) {
+        this.strokeSize = this.storageService.load('stroke_size', '1');
+
         this.generatorMode = this.storageService.load('track_gen_mode', 'random');
         this.inputSeed = this.storageService.load('track_seed', '');
         this.trackWidth = this.storageService.load('track_width', '200');
@@ -69,13 +71,9 @@ export class AppComponent implements AfterViewInit {
         this.collisionCanvas!.addEventListener('mouseout', (e) => {
             this.canvasXY('out', e);
         }, false);
-        this.collisionCanvas!.addEventListener('mouseenter', (e) => {
-            this.canvasXY('enter', e);
-        }, false);
     }
 
     private mouseDown = false;
-    private mouseInBounds = true;
     private prevX = 0;
     private prevY = 0;
     private currX = 0;
@@ -92,9 +90,7 @@ export class AppComponent implements AfterViewInit {
         } else if (res == 'up') {
             this.mouseDown = false;
         } else if (res == 'out') {
-            this.mouseInBounds = false;
-        } else if (res == 'enter') {
-            this.mouseInBounds = true;
+            this.mouseDown = false;
         } else if (res == 'move') {
             if (this.mouseDown) {
                 this.prevX = this.currX;
@@ -102,20 +98,15 @@ export class AppComponent implements AfterViewInit {
                 this.currX = e.clientX - this.collisionCanvas!.offsetLeft;
                 this.currY = e.clientY - this.collisionCanvas!.offsetTop;
 
-                if (this.mouseInBounds) {
-                    this.drawCanvas();
-                }
+                this.drawCanvas();
             }
         }
     }
 
     private colorMatch(color1: Uint8ClampedArray, color2: Uint8ClampedArray): boolean {
-        const n = color1.length;
-        if (n != color2.length) return false;
-        for (let i = 0; i < n; i++) {
-            if (color1[i] != color2[i]) return false;
-        }
-        return true;
+        return color1[0] == color2[0] &&
+            color1[1] == color2[1] &&
+            color1[2] == color2[2];
     }
 
     private drawCanvas(): void {
@@ -124,9 +115,51 @@ export class AppComponent implements AfterViewInit {
         ctx!.moveTo(this.prevX, this.prevY);
         ctx!.lineTo(this.currX, this.currY);
         ctx!.strokeStyle = '#fff';
-        ctx!.lineWidth = 5;
+        ctx!.lineWidth = +this.strokeSize;
         ctx!.stroke();
         ctx!.closePath();
+    }
+
+    exportCollisions(): void {
+        const a = document.createElement('a');
+        const dt = this.collisionCanvas!.toDataURL('image/png');
+        a.href = dt.replace(/^data:image\/[^;]/, 'data:application/octet-stream');
+        a.download = 'track-' + new Date().toLocaleDateString('en-CA') + '.png';
+        a.click();
+    }
+
+    importCollisions(): void {
+
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.png';
+        input.style.display = 'none';
+        document.body.appendChild(input);
+
+        const onEnd = () => {
+            document.body.removeChild(input);
+        };
+
+        input.onchange = () => {
+            if (!input.files || input.files.length == 0 || input.files[0].size > 250000000 || !FileReader) {
+                return onEnd();
+            }
+            const file = input.files[0];
+            const fileReader = new FileReader();
+            fileReader.onload = (e) => {
+                if (!e.target || !e.target.result) {
+                    return onEnd();
+                }
+                const img = new Image();
+                img.onload = (e) => {
+                    this.collisionCanvas!.getContext('2d')!.drawImage(img, 0, 0);
+                };
+                img.src = <string>e.target.result;
+                onEnd();
+            };
+            fileReader.readAsDataURL(file);
+        };
+        input.click();
     }
 
     settingsAsAny(): any {
@@ -134,6 +167,8 @@ export class AppComponent implements AfterViewInit {
     }
 
     saveConfig() {
+        this.storageService.save('stroke_size', this.strokeSize);
+
         this.storageService.save('track_gen_mode', this.generatorMode);
         this.storageService.save('track_seed', this.inputSeed);
         this.storageService.save('track_width', this.trackWidth);
@@ -162,12 +197,12 @@ export class AppComponent implements AfterViewInit {
         const endGate = JSON.parse(this.endGate);
 
         const context = this.collisionCanvas!.getContext('2d')!;
-        const match =  new Uint8ClampedArray([0, 0, 0, 0]);
+        const match =  new Uint8ClampedArray([255, 255, 255]);
         const collisions: boolean[][] = new Array<boolean[]>(height);
         for (let y = 0; y < height; y++) {
             collisions[y] = new Array<boolean>(width);
             for (let x = 0; x < width; x++) {
-                collisions[y][x] = this.colorMatch(context.getImageData(x, y, x + 1, y + 1).data, match);
+                collisions[y][x] = this.colorMatch(context.getImageData(x, y, 1, 1).data, match);
             }
         }
 

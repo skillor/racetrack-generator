@@ -78,5 +78,16 @@
         <canvas class="border" #trackCanvas></canvas>
         <canvas class="border" #debugCanvas></canvas>
         <canvas class="border" #collisionCanvas></canvas>
+        <div>
+            <div class="form-control w-full max-w-xs">
+                <label class="label">
+                    <span class="label-text">Brush Size</span>
+                </label>
+                <input [(ngModel)]="strokeSize" type="number" placeholder=""
+                    class="input input-bordered w-full max-w-xs" />
+            </div>
+            <button class="btn" (click)="importCollisions()">Import Image</button>
+            <button class="btn" (click)="exportCollisions()">Export Image</button>
+        </div>
     </div>
 </div>

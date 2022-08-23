@@ -3,6 +3,7 @@ import * as seedrandom from "seedrandom";
 import { GeneratorMode } from "./generator-modes";
 import { Line } from "./line";
 import { Point } from "./point";
+import { Rect } from "./rectangle";
 import { Settings } from "./settings";
 import { Track } from "./track";
 
@@ -126,11 +127,17 @@ export class TrackGenerator {
     }
 
     private gateHasCollision(currentGate: Line, newGate: Line, gates: Line[]): boolean {
-        for (let connection of [
+        const next: Line[] = [
             [currentGate[0], newGate[0]],
             [newGate[0], newGate[1]],
             [newGate[1], currentGate[1]],
-        ]) {
+        ];
+
+        if (this.hasPolyPixelCollision(next.concat([
+            [currentGate[0], currentGate[1]]
+        ]))) return true;
+
+        for (let connection of next) {
             const currentGates = this.track.gates.concat(gates);
             for (let i = currentGates.length - 1; i > 1; i--) {
                 for (let j of [0, 1] as (0 | 1)[]) {
@@ -141,6 +148,46 @@ export class TrackGenerator {
             }
         }
         return false;
+    }
+
+    private getLinesBounds(lines: Line[]): Rect {
+        var top = Infinity, left = Infinity;
+        var right = -Infinity,  bottom = -Infinity;
+        for (const l of lines) {
+            top = Math.min(top, l[0][1], l[1][1]);
+            left = Math.min(left, l[0][0], l[1][0]);
+            right = Math.max(right, l[0][0], l[1][0]);
+            bottom = Math.max(bottom, l[0][1], l[1][1]);
+        }
+        return [
+            Math.floor(top),
+            Math.floor(left),
+            Math.floor(right),
+            Math.floor(bottom),
+        ];
+    }
+
+    private hasRectangleCollision(rect1: Rect, rect2: Rect): boolean {
+        return rect1[1] < rect2[2] &&
+            rect1[2] > rect2[1] &&
+            rect1[0] < rect2[3] &&
+            rect1[3] > rect2[0];
+    }
+
+    private hasPolyPixelCollision(lines: Line[]): boolean {
+        const b = this.getLinesBounds(lines);
+        for (let y = b[0]; y < b[3]; y++) {
+            for (let x = b[1]; x < b[2]; x++) {
+                if (this.track.collisions[y][x]) return true;
+            }
+        }
+        return false;
+    }
+
+    private hasPolyPolyCollision(lines1: Line[], lines2: Line[]): boolean {
+        const b1 = this.getLinesBounds(lines1);
+        const b2 = this.getLinesBounds(lines2);
+        return this.hasRectangleCollision(b1, b2);
     }
 
     track: Track;
@@ -343,7 +390,7 @@ export class TrackGenerator {
             }
 
             for (let d of diretions) {
-                const newPos: Point = [currentPos[0] + d[0], currentPos[1] + d[1]];
+                const newPos: Point = [Math.floor(currentPos[0] + d[0]), Math.floor(currentPos[1] + d[1])];
 
                 const newAngle = this.vectorAngle(d);
 
