@@ -79,6 +79,12 @@
             <h4>Collisions</h4>
             <canvas class="border" #collisionCanvas></canvas>
             <div class="flex flex-wrap">
+                <div class="btn-group btn-group-vertical">
+                    <button [class.btn-active]="drawColor == '#fff'" (click)="drawColor = '#fff'"
+                        class="btn">+</button>
+                    <button [class.btn-active]="drawColor == '#000'" (click)="drawColor = '#000'"
+                        class="btn">-</button>
+                </div>
                 <button class="btn" (click)="importCollisions()">Import Image</button>
                 <button class="btn" (click)="exportCollisions()">Export Image</button>
                 <button class="btn" (click)="clearCollisions()">Clear</button>

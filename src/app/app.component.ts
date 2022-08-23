@@ -29,6 +29,7 @@ export class AppComponent implements AfterViewInit {
     trackWidth: string;
     trackHeight: string;
     generatorMode: GeneratorMode;
+    drawColor: string = '#fff';
     outputSeed = '';
     settings: Settings;
     generationTime = 0;
@@ -55,6 +56,7 @@ export class AppComponent implements AfterViewInit {
         this.collisionCanvas = this.collisionCanvasRef!.nativeElement;
 
         this.initCollisionCanvas();
+        this.clearCollisions();
         this.generateTrack();
     }
 
@@ -114,7 +116,7 @@ export class AppComponent implements AfterViewInit {
         ctx!.beginPath();
         ctx!.moveTo(this.prevX, this.prevY);
         ctx!.lineTo(this.currX, this.currY);
-        ctx!.strokeStyle = '#fff';
+        ctx!.strokeStyle = this.drawColor;
         ctx!.lineWidth = +this.strokeSize;
         ctx!.stroke();
         ctx!.closePath();
@@ -122,6 +124,9 @@ export class AppComponent implements AfterViewInit {
 
     clearCollisions(): void {
         this.collisionCanvas!.width = this.collisionCanvas!.width;
+        const ctx = this.collisionCanvas!.getContext('2d')!;
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, this.collisionCanvas!.width, this.collisionCanvas!.height);
     }
 
     exportCollisions(): void {
@@ -190,17 +195,20 @@ export class AppComponent implements AfterViewInit {
         this.trackCanvas!.width = width;
         this.trackCanvas!.height = height;
 
-        const data = this.collisionCanvas!.getContext('2d')!.getImageData(0, 0, this.collisionCanvas!.width, this.collisionCanvas!.height);
+        const context = this.collisionCanvas!.getContext('2d')!;
+
+        const data = context.getImageData(0, 0, this.collisionCanvas!.width, this.collisionCanvas!.height);
 
         this.collisionCanvas!.width = width;
         this.collisionCanvas!.height = height;
 
-        this.collisionCanvas!.getContext('2d')!.putImageData(data, 0, 0);
+        this.clearCollisions();
+
+        context.putImageData(data, 0, 0);
 
         const startGate = JSON.parse(this.startGate);
         const endGate = JSON.parse(this.endGate);
 
-        const context = this.collisionCanvas!.getContext('2d')!;
         const match =  new Uint8ClampedArray([255, 255, 255]);
         const collisions: boolean[][] = new Array<boolean[]>(height);
         for (let y = 0; y < height; y++) {
