@@ -101,7 +101,7 @@ export class AppComponent implements AfterViewInit {
             this.inputSeed,
         );
 
-        trackGenerator.maxSegments = +this.inputSegments;
+        trackGenerator.settings.maxSegments = +this.inputSegments;
 
         this.outputSeed = trackGenerator.seed;
 

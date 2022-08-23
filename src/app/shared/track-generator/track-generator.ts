@@ -3,20 +3,11 @@ import * as seedrandom from "seedrandom";
 import { GeneratorMode } from "./generator-modes";
 import { Line } from "./line";
 import { Point } from "./point";
+import { Settings } from "./settings";
 import { Track } from "./track";
 
 export class TrackGenerator {
-    xComputeFactor: number = 0.5;
-    yComputeFactor: number = 0.5;
-    angleComputeFactor: number = 9;
-    maxCurve: number = Math.PI / 4;
-    gateDistance: number = 10;
-    curveComputeCount: number = 4;
-    maxSegments: number = 100000;
-    maxIterations: number = 1000000;
-    minGateHalfSize: number = 5;
-    maxGateHalfSize: number = 15;
-    gateHalfSizeRandomFactor: number = 3;
+    settings: Settings;
     TWO_PI = Math.PI * 2;
 
     private pointEquals(point1: Point, point2: Point): boolean {
@@ -153,11 +144,13 @@ export class TrackGenerator {
         endGate: Line,
         mode: GeneratorMode = 'random',
         seed: string = '',
+        settings: Settings = new Settings(),
     ) {
         this.track = track;
         this.startGate = startGate;
         this.endGate = endGate;
         this.mode = mode;
+        this.settings = settings;
 
         if (seed === '') seed = ('' + Math.random()).substring(2);
         this.seed = seed;
@@ -165,12 +158,26 @@ export class TrackGenerator {
     }
 
     serialize(): string {
-        return JSON.stringify({ track: this.track.serialize(), start: this.startGate, end: this.endGate, mode: this.mode, seed: this.seed });
+        return JSON.stringify({
+            track: this.track.serialize(),
+            start: this.startGate,
+            end: this.endGate,
+            mode: this.mode,
+            seed: this.seed,
+            settings: this.settings.serialize(),
+        });
     }
 
     static unserialize(json: string): TrackGenerator {
         const obj = JSON.parse(json);
-        return new TrackGenerator(Track.unserialize(obj.track), obj.start, obj.end, obj.mode, obj.seed);
+        return new TrackGenerator(
+            Track.unserialize(obj.track),
+            obj.start,
+            obj.end,
+            obj.mode,
+            obj.seed,
+            Settings.unserialize(obj.settings),
+        );
     }
 
     private calcMaxGateHalfSize(pos: Point, angle: number): number {
@@ -215,12 +222,12 @@ export class TrackGenerator {
             this.normalizeAngle(currentAngle)
         ];
 
-        for (let i = this.curveComputeCount - 1; i > 0; i--) {
+        for (let i = this.settings.curveComputeCount - 1; i > 0; i--) {
             angles.push(
-                this.normalizeAngle(currentAngle + ((i * this.maxCurve) / this.curveComputeCount))
+                this.normalizeAngle(currentAngle + ((i * this.settings.maxCurve) / this.settings.curveComputeCount))
             );
             angles.push(
-                this.normalizeAngle(currentAngle - ((i * this.maxCurve) / this.curveComputeCount))
+                this.normalizeAngle(currentAngle - ((i * this.settings.maxCurve) / this.settings.curveComputeCount))
             );
         }
 
@@ -232,7 +239,7 @@ export class TrackGenerator {
 
         for (const angle of angles) {
             vectors.push(
-                this.angleToVectorMultiplied(angle, this.gateDistance)
+                this.angleToVectorMultiplied(angle, this.settings.gateDistance)
             );
         }
 
@@ -252,7 +259,11 @@ export class TrackGenerator {
     }
 
     private posAngleToGrid(pos: Point, angle: number): [number, number, number] {
-        return [Math.floor(pos[1] * this.yComputeFactor), Math.floor(pos[0] * this.xComputeFactor), Math.floor(this.normalizeAngle10(angle) * this.angleComputeFactor)];
+        return [
+            Math.floor(pos[1] * this.settings.yComputeFactor),
+            Math.floor(pos[0] * this.settings.xComputeFactor),
+            Math.floor(this.normalizeAngle10(angle) * this.settings.angleComputeFactor)
+        ];
     }
 
     private isValidGridPos(gridPos: [number, number, number], gridSize: [number, number, number]): boolean {
@@ -261,7 +272,7 @@ export class TrackGenerator {
             gridPos[2] >= 0 && gridPos[2] < gridSize[2];
     }
 
-    findTrackDFS(iterationCount = 0): [Line[], boolean, number] {
+    findTrackDFS(iterationCount = 0, trys = 0): [Line[], boolean, number] {
         const gates: [Line, Line[]][] = [];
 
         const endPos = this.gateCenterPos(this.endGate);
@@ -288,10 +299,9 @@ export class TrackGenerator {
         while (true) {
             let current = gates.pop();
             if (current === undefined) {
-                this.angleComputeFactor += 1;
-                return this.findTrackDFS(iterationCount);
-                // current = [this.startGate, []];
-                // return [[], false, iterationCount]
+                this.settings.angleComputeFactor += 1;
+                if (trys > this.settings.maxTrys) return [[], false, iterationCount];
+                return this.findTrackDFS(iterationCount, trys + 1);
             };
             const currentGate = current[0];
             const traversedGates = current[1];
@@ -304,7 +314,7 @@ export class TrackGenerator {
 
             const foundEnd = this.pointAngleMatches(currentPos, currentAngle, endPos, endAngle);
             if (foundEnd ||
-                traversedGates.length > this.maxSegments) {
+                traversedGates.length > this.settings.maxSegments) {
                 return [traversedGates, foundEnd, iterationCount];
             }
 
@@ -322,7 +332,7 @@ export class TrackGenerator {
                 const newPos: Point = [currentPos[0] + d[0], currentPos[1] + d[1]];
 
                 const newAngle = this.vectorAngle(d);
-                const newGate = this.pointToGate(newPos, newAngle, this.minGateHalfSize);
+                const newGate = this.pointToGate(newPos, newAngle, this.settings.minGateHalfSize);
 
                 const newGridPos = this.posAngleToGrid(newPos, newAngle);
 
@@ -334,10 +344,8 @@ export class TrackGenerator {
                 }
             }
 
-            // console.log(gates.length);
-
             iterationCount++;
-            if (iterationCount > this.maxIterations) return [[], false, iterationCount];
+            if (iterationCount > this.settings.maxIterations) return [[], false, iterationCount];
         }
     }
 
