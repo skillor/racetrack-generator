@@ -32,8 +32,8 @@ export class AppComponent implements AfterViewInit {
 
     private track!: Track;
 
-    startGate: Line = [[10, 0], [0, 0]];
-    endGate: Line = [[20, 0], [30, 0]];
+    startGate: string = '[[50, 10], [50, 0]]';
+    endGate: string = '[[60, 10], [60, 0]]';
 
     constructor(private storageService: StorageService) {
         this.generatorMode = this.storageService.load('track_gen_mode', 'random');
@@ -72,33 +72,39 @@ export class AppComponent implements AfterViewInit {
         this.trackCanvas!.width = width;
         this.trackCanvas!.height = height;
 
+        const startGate = JSON.parse(this.startGate);
+        const endGate = JSON.parse(this.endGate);
+
         this.track = new Track(
             width,
             height,
             this.debugCanvas!,
             this.trackCanvas!,
             [
-                this.endGate,
-                this.startGate,
+                endGate,
+                startGate,
             ],
         );
 
-        this.track.drawGate(this.track.debugCanvasContext, this.startGate, '#880', '#08f');
-        this.track.drawGate(this.track.debugCanvasContext, this.endGate, '#f80', '#088');
+        this.track.drawGate(this.track.debugCanvasContext, startGate, '#880', '#08f');
+        this.track.drawGate(this.track.debugCanvasContext, endGate, '#f80', '#088');
 
         this.addSegments();
     }
 
     addSegments() {
+        const tStartGate = JSON.parse(this.startGate);
+        const tEndGate = JSON.parse(this.endGate);
+
         this.saveConfig();
 
         let startGate = this.track.lastGate();
-        if (startGate === undefined) startGate = this.startGate;
+        if (startGate === undefined) startGate = tStartGate;
 
         const trackGenerator = new TrackGenerator(
             this.track,
             startGate,
-            this.endGate,
+            tEndGate,
             this.generatorMode,
             this.inputSeed,
             this.settings.copy(),

@@ -26,7 +26,7 @@ export class TrackGenerator {
     }
 
     private degreesToRadians(degrees: number): number {
-        return degrees * (Math.PI/180);
+        return degrees * (Math.PI / 180);
     }
 
     private normalizeAngle(angle: number): number {
@@ -126,7 +126,6 @@ export class TrackGenerator {
     }
 
     private gateHasCollision(currentGate: Line, newGate: Line, gates: Line[]): boolean {
-        if (this.lineOutBounds(newGate)) return true;
         for (let connection of [
             [currentGate[0], newGate[0]],
             [newGate[0], newGate[1]],
@@ -282,7 +281,7 @@ export class TrackGenerator {
     findTrackDFS(iterationCount = 0, trys = 0): [Line[], boolean, number] {
         this.settings.validate();
 
-        const gates: [Line, Line[]][] = [];
+        const gates: [Line, Line[], number][] = [];
 
         const endPos = this.gateCenterPos(this.endGate);
         const endAngle = this.gateAngle(this.endGate);
@@ -303,7 +302,7 @@ export class TrackGenerator {
             }
         }
 
-        gates.push([this.startGate, []]);
+        gates.push([this.startGate, [], 0]);
 
         while (true) {
             let current = gates.pop();
@@ -314,6 +313,7 @@ export class TrackGenerator {
             };
             const currentGate = current[0];
             const traversedGates = current[1];
+            let prevCollisions = current[2];
 
             const currentPos = this.gateCenterPos(currentGate);
             const currentAngle = this.gateAngle(currentGate);
@@ -327,7 +327,8 @@ export class TrackGenerator {
             const segementCount = traversedGates.length;
             if (foundEnd && segementCount >= +this.settings.minSegments ||
                 segementCount >= +this.settings.maxSegments) {
-                    console.log(segementCount + ' segments');
+                console.log(segementCount + ' segments');
+                console.log(prevCollisions + ' collisions');
                 return [traversedGates, foundEnd, iterationCount];
             }
 
@@ -359,9 +360,9 @@ export class TrackGenerator {
 
                 if (this.isValidGridPos(newGridPos, gridSize) &&
                     !visited[newGridPos[0]][newGridPos[1]][newGridPos[2]] &&
-                    !this.gateHasCollision(currentGate, newGate, traversedGates)) {
-
-                    gates.push([newGate, traversedGates.concat([currentGate])]);
+                    !this.lineOutBounds(newGate)) {
+                    if (this.gateHasCollision(currentGate, newGate, traversedGates)) prevCollisions += 1;
+                    if (prevCollisions <= +this.settings.maxCollisions) gates.push([newGate, traversedGates.concat([currentGate]), prevCollisions]);
                 }
             }
 
@@ -381,7 +382,7 @@ export class TrackGenerator {
                     return event.data;
                 }),
             );
-            worker.postMessage({ type: 'start', trackGenerator: this.serialize()});
+            worker.postMessage({ type: 'start', trackGenerator: this.serialize() });
             return workerSubscription;
         } else {
             // Web Workers are not supported in this environment.

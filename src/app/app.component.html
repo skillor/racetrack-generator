@@ -39,6 +39,20 @@
         </div>
     </div>
     <div class="flex">
+        <div class="form-control w-full max-w-xs">
+            <label class="label">
+                <span class="label-text">Start</span>
+            </label>
+            <input [(ngModel)]="startGate" type="text" placeholder="" class="input input-bordered w-full max-w-xs" />
+        </div>
+        <div class="form-control w-full max-w-xs">
+            <label class="label">
+                <span class="label-text">End</span>
+            </label>
+            <input [(ngModel)]="endGate" type="text" placeholder="" class="input input-bordered w-full max-w-xs" />
+        </div>
+    </div>
+    <div class="flex">
         <div class="collapse collapse-arrow border border-secondary rounded-box">
             <input type="checkbox" class="peer" />
             <div class="collapse-title">

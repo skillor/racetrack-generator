@@ -11,6 +11,7 @@ export class Settings {
     maxIterations: number = 1000000;
     minGateHalfSize: number = 5;
     maxGateHalfSize: number = 15;
+    maxCollisions: number = 0;
 
     constructor(obj: any = {}) {
         for (const key of this.getPropertyNames()) {
