@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { PrefabParser } from 'src/app/shared/prefab-parser/prefab-parser';
+import { Prefab } from 'src/app/shared/prefab-parser/prefab';
 
 @Component({
     selector: 'app-home',
@@ -8,10 +8,13 @@ import { PrefabParser } from 'src/app/shared/prefab-parser/prefab-parser';
 })
 export class HomeComponent {
 
+    objects: any[] = [];
+
     constructor() { }
 
     private parsePrefab(content: string): void {
-        PrefabParser.parse(content);
+        const prefab = new Prefab(content);
+        this.objects = prefab.objects;
     }
 
     importPrefab(): void {
