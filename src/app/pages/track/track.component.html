@@ -126,9 +126,23 @@
             </div>
 
             <div class="dropdown">
-                <label tabindex="0" class="btn m-1">Export</label>
+                <label tabindex="0" class="btn m-1">Export Prefab</label>
                 <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box">
                     <li *ngFor="let obj of objectNames()"><button class="btn" (click)="exportPrefab(obj)">{{obj.label}}</button></li>
+                </ul>
+            </div>
+
+            <div class="form-control w-full max-w-xs">
+                <label class="label">
+                    <span class="label-text">Level Name</span>
+                </label>
+                <input [(ngModel)]="levelName" type="text" placeholder="west_coast_usa" class="input input-bordered w-full max-w-xs" />
+            </div>
+
+            <div class="dropdown">
+                <label tabindex="0" class="btn m-1">Export Mod</label>
+                <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box">
+                    <li *ngFor="let obj of objectNames()"><button class="btn" (click)="exportMod(obj)">{{obj.label}}</button></li>
                 </ul>
             </div>
         </div>

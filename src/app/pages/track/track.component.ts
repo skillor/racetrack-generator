@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
+import * as fflate from 'fflate';
 import { PrefabObject } from 'src/app/shared/prefab-parser/prefab-object';
 import { Prefab } from 'src/app/shared/prefab-parser/prefab';
 import { StaticObject, StaticObjectType } from 'src/app/shared/prefab-parser/static-object';
@@ -343,11 +344,48 @@ export class TrackComponent implements AfterViewInit {
     }
 
     exportPrefab(obj: StaticObjectType): void {
-        const prefab = Prefab.createByTrack(this.track, +this.prefabScale, obj, this.prefab);
+        const prefab = Prefab.createByTrack(this.track, +this.prefabScale, obj, this.prefab,);
         const blob = new Blob([prefab.content], {
             type: 'text/plain',
         });
-        const url = URL.createObjectURL(blob);
-        window.open(url, '_blank')!.focus();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'track-' + new Date().toLocaleDateString('en-CA') + '.prefab';
+        a.click();
+    }
+
+    levelName = 'west_coast_usa';
+
+    jsonLines(...objects: any[]) {
+        return objects.map((o: any) => JSON.stringify(o)).join('\n');
+    }
+
+    exportMod(obj: StaticObjectType): void {
+        const prefab = Prefab.createByTrack(this.track, +this.prefabScale, obj, this.prefab,);
+        const trackName = 'racetrack';
+
+        const zipped = fflate.zipSync({
+            // Directories can be nested structures, as in an actual filesystem
+            ['levels/' + this.levelName + '/main/items.level.json']:
+                fflate.strToU8(this.jsonLines(
+                    {"name":"MissionGroup","class":"SimGroup","enabled":"1",'persistentId': Prefab.createPersitentId()},
+                    {"name":"GeneratedTracks","class":"SimGroup","enabled":"1",'persistentId': Prefab.createPersitentId()},
+                )),
+            ['levels/' + this.levelName + '/main/GeneratedTracks/items.level.json']:
+                fflate.strToU8(this.jsonLines({"name":trackName,"class":"SimGroup","__parent":"GeneratedTracks","groupPosition":"0 0 0",'persistentId': Prefab.createPersitentId()})),
+            ['levels/' + this.levelName + '/main/GeneratedTracks/' + trackName + '/items.level.json']:
+                fflate.strToU8(prefab.toJson(trackName)),
+        }, {
+            level: 1,
+            mtime: new Date()
+        });
+
+        const blob = new Blob([zipped], {
+            type: 'application/zip',
+        });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = trackName + '.zip';
+        a.click();
     }
 }

@@ -3,8 +3,8 @@ import { Prefab } from "./prefab";
 import { PrefabObject } from "./prefab-object";
 import { StaticObject } from "./static-object";
 
-export class ContentVisitor implements Visitor {
-    private s = ''
+export class PrefabVisitor implements Visitor {
+    private s = '';
     private indent = 0;
     indentSize = 2;
 
@@ -85,5 +85,4 @@ export class ContentVisitor implements Visitor {
         this.indent--;
         this.writeLine('};')
     }
-
 }

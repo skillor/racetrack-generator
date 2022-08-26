@@ -3,7 +3,8 @@ import { PrefabObject } from './prefab-object';
 import { StaticObject, StaticObjectType } from './static-object';
 import { Track } from '../track-generator/track';
 import { Line } from '../track-generator/line';
-import { ContentVisitor } from './object-content-visitor';
+import { PrefabVisitor } from './prefab-content-visitor';
+import { JsonContentVisitor } from './json-content-visitor';
 
 export class Prefab {
     content: string = '';
@@ -14,7 +15,18 @@ export class Prefab {
     size: number[] = [0, 0, 0];
 
     constructor() {
+    }
 
+    private static persistentIdChars = '0123456789abcdef';
+    private static persistentIdDashs = [8, 12, 16, 20];
+
+    static createPersitentId(): string {
+        let r = '';
+        for (let i = 0; i < 32; i++) {
+            if (this.persistentIdDashs.includes(i)) r += '-';
+            r += this.persistentIdChars[Math.floor(Math.random() * this.persistentIdChars.length)];
+        }
+        return r;
     }
 
     static createByContent(content: string): Prefab {
@@ -68,9 +80,15 @@ export class Prefab {
     }
 
     private stringify() {
-        const v = new ContentVisitor();
+        const v = new PrefabVisitor();
         v.visit(this);
         this.content = v.get();
+    }
+
+    toJson(parentName: string): string {
+        const v = new JsonContentVisitor(parentName);
+        v.visit(this);
+        return v.get();
     }
 
     private parse() {
