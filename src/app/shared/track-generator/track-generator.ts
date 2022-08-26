@@ -396,11 +396,8 @@ export class TrackGenerator {
 
                 let size = Math.min(+this.settings.maxGateHalfSize, this.calcMaxGateHalfSize(newPos, newAngle));
                 if (size > +this.settings.minGateHalfSize) size = +this.settings.minGateHalfSize + (this.random() * (size - +this.settings.minGateHalfSize));
-                // if (size > +this.settings.minGateHalfSize) size = +this.settings.minGateHalfSize + (size - +this.settings.minGateHalfSize);
-                // if (size < +this.settings.minGateHalfSize) console.log('wtf');
                 size = Math.max(+this.settings.minGateHalfSize, size);
 
-                // const newGate = this.pointToGate(newPos, newAngle, +this.settings.minGateHalfSize);
                 const newGate = this.pointToGate(newPos, newAngle, size);
 
                 const newGridPos = this.posAngleToGrid(newPos, newAngle);
