@@ -9,7 +9,7 @@ import { Track } from "./track";
 
 export class TrackGenerator {
     settings: Settings;
-    TWO_PI = Math.PI * 2;
+    static TWO_PI = Math.PI * 2;
 
     private pointEquals(point1: Point, point2: Point): boolean {
         return point1[0] == point2[0] && point1[1] == point2[1];
@@ -30,17 +30,17 @@ export class TrackGenerator {
         return degrees * (Math.PI / 180);
     }
 
-    private normalizeAngle(angle: number): number {
+    static normalizeAngle(angle: number): number {
         // normalize between -π and +π
         return angle - this.TWO_PI * Math.floor((angle + Math.PI) / this.TWO_PI)
     }
 
-    private normalizeAngle10(angle: number): number {
+    static normalizeAngle10(angle: number): number {
         // normalize between 0 and 1
         return (angle + Math.PI) / this.TWO_PI;
     }
 
-    private vectorAngle(vector: Point): number {
+    static vectorAngle(vector: Point): number {
         return Math.atan2(vector[1], vector[0])
     }
 
@@ -52,33 +52,39 @@ export class TrackGenerator {
         return [Math.cos(angle) * distance, Math.sin(angle) * distance];
     }
 
-    private lineAngle(line: Line): number {
+    static lineAngle(line: Line): number {
         return this.vectorAngle([line[1][0] - line[0][0], line[1][1] - line[0][1]]);
     }
 
-    private gateAngle(gate: Line): number {
+    static gateAngle(gate: Line): number {
         return this.normalizeAngle(this.lineAngle(gate) - Math.PI * 0.5);
     }
 
-    private lineLengthUnnormed(line: Line): number {
+    static lineLengthUnnormed(line: Line): number {
         const a = line[0][0] - line[1][0];
         const b = line[0][1] - line[1][1];
         return a * a + b * b;
     }
 
-    private lineLength(line: Line): number {
+    static lineLength(line: Line): number {
         return Math.sqrt(this.lineLengthUnnormed(line));
     }
 
-    private pointToGate(point: Point, angle: number, halfSize: number): Line {
+    static pointToGate(point: Point, angle: number, halfSize: number, round: boolean = false): Line {
+
         return [
-            this.pointTravel(point, angle - Math.PI * 0.5, halfSize),
-            this.pointTravel(point, angle + Math.PI * 0.5, halfSize),
+            this.pointTravel(point, angle - Math.PI * 0.5, halfSize, round),
+            this.pointTravel(point, angle + Math.PI * 0.5, halfSize, round),
         ];
     }
 
-    private pointTravel(point: Point, angle: number, distance: number): Point {
-        return [point[0] + Math.cos(angle) * distance, point[1] + Math.sin(angle) * distance];
+    private static pointTravel(point: Point, angle: number, distance: number, round: boolean = false): Point {
+        const p: Point = [point[0] + Math.cos(angle) * distance, point[1] + Math.sin(angle) * distance];
+        if (round) {
+            p[0] = Math.round(p[0]);
+            p[1] = Math.round(p[1]);
+        }
+        return p;
     }
 
     private boundsLines(): Line[] {
@@ -95,6 +101,10 @@ export class TrackGenerator {
             point[1] < 0 ||
             point[0] > this.track.width ||
             point[1] > this.track.height;
+    }
+
+    static centerOfLine(line: Line): Point {
+        return [(line[0][0] + line[1][0]) * 0.5, (line[0][1] + line[1][1]) * 0.5];
     }
 
     private lineOutBounds(line: Line): boolean {
@@ -240,7 +250,7 @@ export class TrackGenerator {
     }
 
     private calcMaxGateHalfSize(pos: Point, angle: number): number {
-        let line = this.pointToGate(pos, angle, this.track.width * this.track.height);
+        let line = TrackGenerator.pointToGate(pos, angle, this.track.width * this.track.height);
         // let minPoint = pos;
         let minDistance = +this.settings.maxGateHalfSize;
         let collision;
@@ -254,7 +264,7 @@ export class TrackGenerator {
                     [gates[i][j], gates[i - 1][j]],
                 );
                 if (collision !== null) {
-                    const distance = this.lineLength([collision, pos]);
+                    const distance = TrackGenerator.lineLength([collision, pos]);
                     if (distance < 0 || distance < minDistance) {
                         // minPoint = collision;
                         minDistance = distance;
@@ -268,24 +278,24 @@ export class TrackGenerator {
 
     private predictDirections(startPos: Point, targetPos: Point, currentAngle: number): Point[] {
 
-        const targetAngle = this.lineAngle([startPos, targetPos]);
+        const targetAngle = TrackGenerator.lineAngle([startPos, targetPos]);
 
         const angles: number[] = [
-            this.normalizeAngle(currentAngle)
+            TrackGenerator.normalizeAngle(currentAngle)
         ];
 
         for (let i = +this.settings.curveComputeCount - 1; i > 0; i--) {
             const o = (i * this.degreesToRadians(+this.settings.maxCurve)) / +this.settings.curveComputeCount;
             angles.push(
-                this.normalizeAngle(currentAngle + o)
+                TrackGenerator.normalizeAngle(currentAngle + o)
             );
             angles.push(
-                this.normalizeAngle(currentAngle - o)
+                TrackGenerator.normalizeAngle(currentAngle - o)
             );
         }
 
         angles.sort((a, b) => {
-            return Math.abs(this.normalizeAngle(targetAngle - b)) - Math.abs(this.normalizeAngle(targetAngle - a));
+            return Math.abs(TrackGenerator.normalizeAngle(targetAngle - b)) - Math.abs(TrackGenerator.normalizeAngle(targetAngle - a));
         });
 
         const vectors: Point[] = [];
@@ -304,10 +314,10 @@ export class TrackGenerator {
     }
 
     private pointAngleMatches(point1: Point, angle1: number, point2: Point, angle2: number): boolean {
-        const d = this.lineLengthUnnormed([point1, point2]);
-        if (d > 19) return false;
-        const k = Math.abs(this.normalizeAngle(angle1 - angle2));
-        if (k > 0.3) return false;
+        const d = TrackGenerator.lineLengthUnnormed([point1, point2]);
+        if (d > +this.settings.distanceMatch) return false;
+        const k = Math.abs(TrackGenerator.normalizeAngle(angle1 - angle2));
+        if (k > +this.settings.angleMatch) return false;
         return true;
     }
 
@@ -315,7 +325,7 @@ export class TrackGenerator {
         return [
             Math.floor(pos[1] * +this.settings.yComputeFactor),
             Math.floor(pos[0] * +this.settings.xComputeFactor),
-            Math.floor(this.normalizeAngle10(angle) * +this.settings.angleComputeFactor)
+            Math.floor(TrackGenerator.normalizeAngle10(angle) * +this.settings.angleComputeFactor)
         ];
     }
 
@@ -331,7 +341,7 @@ export class TrackGenerator {
         const gates: [Line, Line[], number][] = [];
 
         const endPos = this.gateCenterPos(this.endGate);
-        const endAngle = this.gateAngle(this.endGate);
+        const endAngle = TrackGenerator.gateAngle(this.endGate);
 
         const gridSize = this.posAngleToGrid([this.track.width, this.track.height], Math.PI);
 
@@ -363,7 +373,7 @@ export class TrackGenerator {
             let prevCollisions = current[2];
 
             const currentPos = this.gateCenterPos(currentGate);
-            const currentAngle = this.gateAngle(currentGate);
+            const currentAngle = TrackGenerator.gateAngle(currentGate);
 
             const currentGridPos = this.posAngleToGrid(currentPos, currentAngle);
             visited[currentGridPos[0]][currentGridPos[1]][currentGridPos[2]] = true;
@@ -392,13 +402,13 @@ export class TrackGenerator {
             for (let d of diretions) {
                 const newPos: Point = [Math.floor(currentPos[0] + d[0]), Math.floor(currentPos[1] + d[1])];
 
-                const newAngle = this.vectorAngle(d);
+                const newAngle = TrackGenerator.vectorAngle(d);
 
                 let size = Math.min(+this.settings.maxGateHalfSize, this.calcMaxGateHalfSize(newPos, newAngle));
                 if (size > +this.settings.minGateHalfSize) size = +this.settings.minGateHalfSize + (this.random() * (size - +this.settings.minGateHalfSize));
                 size = Math.max(+this.settings.minGateHalfSize, size);
 
-                const newGate = this.pointToGate(newPos, newAngle, size);
+                const newGate = TrackGenerator.pointToGate(newPos, newAngle, size);
 
                 const newGridPos = this.posAngleToGrid(newPos, newAngle);
 

@@ -65,8 +65,10 @@
                             <span class="label-text">{{prop}}</span>
                         </label>
                         <ng-container [ngSwitch]="settings.getType(settings.getProperty(prop))">
-                            <input *ngSwitchCase="'number'" [(ngModel)]="settingsAsAny()[prop]" type="number" placeholder="" class="input input-bordered w-full max-w-xs" />
-                            <input *ngSwitchDefault [(ngModel)]="settingsAsAny()[prop]" type="text" placeholder="" class="input input-bordered w-full max-w-xs" />
+                            <input *ngSwitchCase="'number'" [(ngModel)]="settingsAsAny()[prop]" type="number"
+                                placeholder="" class="input input-bordered w-full max-w-xs" />
+                            <input *ngSwitchDefault [(ngModel)]="settingsAsAny()[prop]" type="text" placeholder=""
+                                class="input input-bordered w-full max-w-xs" />
                         </ng-container>
                     </div>
                 </div>
@@ -80,10 +82,8 @@
             <canvas class="border" #collisionCanvas></canvas>
             <div class="flex flex-wrap">
                 <div class="btn-group btn-group-vertical">
-                    <button [class.btn-active]="drawColor == '#fff'" (click)="drawColor = '#fff'"
-                        class="btn">+</button>
-                    <button [class.btn-active]="drawColor == '#000'" (click)="drawColor = '#000'"
-                        class="btn">-</button>
+                    <button [class.btn-active]="drawColor == '#fff'" (click)="drawColor = '#fff'" class="btn">+</button>
+                    <button [class.btn-active]="drawColor == '#000'" (click)="drawColor = '#000'" class="btn">-</button>
                 </div>
                 <button class="btn" (click)="importCollisions()">Import Image</button>
                 <button class="btn" (click)="exportCollisions()">Export Image</button>
@@ -101,6 +101,38 @@
             <h4>Track</h4>
             <canvas class="border" #trackCanvas></canvas>
         </div>
+
+        <div>
+            <div class="form-control w-full max-w-xs">
+                <label class="label">
+                    <span class="label-text">Prefab Scale</span>
+                </label>
+                <input [(ngModel)]="prefabScale" type="number" placeholder=""
+                    class="input input-bordered w-full max-w-xs" />
+            </div>
+
+            <button class="btn" (click)="importPrefab()">Import Prefab</button>
+
+            <div class="overflow-x-auto">
+                <table class="table table-zebra table-compact w-full">
+                    <tbody>
+                        <tr *ngFor="let obj of prefab?.objects">
+                            <td><button class="btn" (click)="useAsStart(obj)">Start</button></td>
+                            <td><button class="btn" (click)="useAsEnd(obj)">End</button></td>
+                            <td>{{ obj | json }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="dropdown">
+                <label tabindex="0" class="btn m-1">Export</label>
+                <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box">
+                    <li *ngFor="let obj of objectNames()"><button class="btn" (click)="exportPrefab(obj)">{{obj.label}}</button></li>
+                </ul>
+            </div>
+        </div>
+
         <div>
             <h4>Debug</h4>
             <canvas class="border" #debugCanvas></canvas>

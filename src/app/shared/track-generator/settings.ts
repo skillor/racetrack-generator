@@ -12,6 +12,8 @@ export class Settings {
     minGateHalfSize: number = 5;
     maxGateHalfSize: number = 15;
     maxCollisions: number = 0;
+    distanceMatch: number = 19;
+    angleMatch: number = 0.3;
 
     constructor(obj: any = {}) {
         for (const key of this.getPropertyNames()) {

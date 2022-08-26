@@ -1,4 +1,7 @@
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
+import { PrefabObject } from 'src/app/shared/prefab-parser/prefab-object';
+import { Prefab } from 'src/app/shared/prefab-parser/prefab';
+import { StaticObject, StaticObjectType } from 'src/app/shared/prefab-parser/static-object';
 import { StorageService } from 'src/app/shared/storage/storage.service';
 import { GeneratorMode } from 'src/app/shared/track-generator/generator-modes';
 import { Settings } from 'src/app/shared/track-generator/settings';
@@ -6,19 +9,19 @@ import { Track } from 'src/app/shared/track-generator/track';
 import { TrackGenerator } from 'src/app/shared/track-generator/track-generator';
 
 @Component({
-  selector: 'app-track',
-  templateUrl: './track.component.html',
-  styleUrls: ['./track.component.scss']
+    selector: 'app-track',
+    templateUrl: './track.component.html',
+    styleUrls: ['./track.component.scss']
 })
 export class TrackComponent implements AfterViewInit {
 
-    @ViewChild('debugCanvas', {static: false})
+    @ViewChild('debugCanvas', { static: false })
     debugCanvasRef?: ElementRef<HTMLCanvasElement>;
 
-    @ViewChild('trackCanvas', {static: false})
+    @ViewChild('trackCanvas', { static: false })
     trackCanvasRef?: ElementRef<HTMLCanvasElement>;
 
-    @ViewChild('collisionCanvas', {static: false})
+    @ViewChild('collisionCanvas', { static: false })
     collisionCanvasRef?: ElementRef<HTMLCanvasElement>;
 
     debugCanvas?: HTMLCanvasElement;
@@ -198,7 +201,7 @@ export class TrackComponent implements AfterViewInit {
         const startGate = JSON.parse(this.startGate);
         const endGate = JSON.parse(this.endGate);
 
-        const match =  new Uint8ClampedArray([255, 255, 255]);
+        const match = new Uint8ClampedArray([255, 255, 255]);
         const collisions: boolean[][] = new Array<boolean[]>(height);
         for (let y = 0; y < height; y++) {
             collisions[y] = new Array<boolean>(width);
@@ -261,4 +264,90 @@ export class TrackComponent implements AfterViewInit {
         this.track.drawTrack();
     }
 
+    prefab?: Prefab = undefined;
+    prefabScale: string = '5';
+
+    private prefabPointToPoint(p: number[]): number[] {
+        const scale = +this.prefabScale;
+        const r: number[] = [];
+        for (let i = 0; i < p.length; i++) {
+            r.push(Math.round((p[i] - this.prefab!.minPos[i]) * scale));
+        }
+        return r;
+    }
+
+    private parsePrefab(content: string): void {
+        this.prefab = Prefab.createByContent(content);
+        this.trackWidth = '' + Math.round(this.prefab.size[0] * +this.prefabScale);
+        this.trackHeight = '' + Math.round(this.prefab.size[1] * +this.prefabScale);
+    }
+
+    importPrefab(): void {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.prefab';
+        input.style.display = 'none';
+        document.body.appendChild(input);
+
+        const onEnd = () => {
+            document.body.removeChild(input);
+        };
+
+        input.onchange = () => {
+            if (!input.files || input.files.length == 0 || input.files[0].size > 250000000 || !FileReader) {
+                return onEnd();
+            }
+            const file = input.files[0];
+            const fileReader = new FileReader();
+            fileReader.onload = (e) => {
+                if (!e.target || !e.target.result) {
+                    return onEnd();
+                }
+                let content: string;
+                if (typeof e.target.result === 'string') {
+                    content = e.target.result;
+                } else {
+                    content = new TextDecoder().decode(e.target.result);
+                }
+
+                try {
+                    this.parsePrefab(content);
+                } catch (err) {
+                    console.error(err);
+                }
+                onEnd();
+            };
+            fileReader.readAsText(file);
+        };
+        input.click();
+    }
+
+    objectNames(): StaticObjectType[] {
+        return StaticObject.types;
+    }
+
+    useAsStart(obj: PrefabObject): void {
+        const pos = this.prefabPointToPoint([obj.pos![0], obj.pos![1]]);
+        const angle = obj.rot![2];
+        this.startGate = JSON.stringify(
+            TrackGenerator.pointToGate(<any>pos, angle, (+this.settings.minGateHalfSize + +this.settings.maxGateHalfSize) / 2, true)
+        );
+    }
+
+    useAsEnd(obj: PrefabObject): void {
+        const pos = this.prefabPointToPoint([obj.pos![0], obj.pos![1]]);
+        const angle = obj.rot![2];
+        this.endGate = JSON.stringify(
+            TrackGenerator.pointToGate(<any>pos, angle, (+this.settings.minGateHalfSize + +this.settings.maxGateHalfSize) / 2, true)
+        );
+    }
+
+    exportPrefab(obj: StaticObjectType): void {
+        const prefab = Prefab.createByTrack(this.track, +this.prefabScale, obj, this.prefab);
+        const blob = new Blob([prefab.content], {
+            type: 'text/plain',
+        });
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank')!.focus();
+    }
 }
