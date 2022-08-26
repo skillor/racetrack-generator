@@ -2,6 +2,7 @@ import { Line } from "../track-generator/line";
 import { TrackGenerator } from "../track-generator/track-generator";
 import { Visitor } from "./object-visitor";
 import { PrefabObject } from "./prefab-object";
+import * as THREE from "./three-math";
 
 export type StaticObjectType = {
     label: string,
@@ -63,11 +64,19 @@ export class StaticObject extends PrefabObject {
         if (closest.length == 1) {
             p.pos[2] = closest[0][2];
         } else if (closest.length > 1) {
-            const a = closest[0];
-            const b = closest[1];
-            const d = TrackGenerator.lineLengthUnnormed([[a[0], a[1]], center]) / TrackGenerator.lineLengthUnnormed([[a[0], a[1]], [b[0], b[1]]]);
-            const f = 1 - d;
-            p.pos[2] = a[2] * f + b[2] * d;
+            let points = [closest[0], closest[1]];
+            if (closest.length > 2) {
+                points.push(closest[2]);
+            } else {
+                points.push([closest[1][0] + 1, closest[1][1], closest[1][2]]);
+            }
+
+            points = points.map((v) => new THREE.Vector3(v[0], v[1], v[2]));
+            const plane = new THREE.Plane();
+            plane.setFromCoplanarPoints(points[0], points[1], points[2]);
+
+            const ray = new THREE.Ray(new THREE.Vector3(p.pos[0], p.pos[1], 0), new THREE.Vector3(0, 0, 1));
+            p.pos[2] = ray.intersectPlane(plane).z;
         }
 
         p.rot = [0, 0, angle + type.angleOffset];
