@@ -63,6 +63,20 @@ export class Track {
         return new Track(obj.width, obj.height, obj.collisions, null, null, obj.gates);
     }
 
+    getBarrierLines(off: number = 0, n: number = -1): Line[] {
+        if (n < 0) n = this.gates.length;
+        const lines: Line[] = [];
+        for (let i = n - 1; i > off + 1; i--) {
+            for (let j of [0, 1] as (0 | 1)[]) {
+                lines.push([
+                    this.gates[i][j],
+                    this.gates[i - 1][j],
+                ]);
+            }
+        }
+        return lines;
+    }
+
     firstGate(): Line {
         return this.gates[0];
     }
@@ -80,6 +94,11 @@ export class Track {
         this.trackCanvasContext.clearRect(0, 0, this.width, this.height);
 
         if (n < 0) n = this.gates.length;
+
+        for (let b of this.getBarrierLines(off, n)) {
+            this.drawLine(this.trackCanvasContext, b, '#fff');
+        }
+
         for (let i = off; i < n; i++) {
             this.drawGate(this.trackCanvasContext, this.gates[i]);
         }

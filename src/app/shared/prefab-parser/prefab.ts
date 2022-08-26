@@ -51,20 +51,17 @@ export class Prefab {
         }
 
         const p = new Prefab();
-        for (let i = track.gates.length - 1; i > 1; i--) {
-            for (let j of [0, 1] as (0 | 1)[]) {
-                const line: Line = [
-                    [(track.gates[i][j][0] / trackScale) + minPos[0], (track.gates[i][j][1] / trackScale) + minPos[1]],
-                    [(track.gates[i - 1][j][0] / trackScale) + minPos[0], (track.gates[i - 1][j][1] / trackScale) + minPos[1]],
-                ];
-                p.objects.push(
-                    StaticObject.createByLineAndType(
-                        line,
-                        staticObjectType,
-                        referencePoints,
-                        )
-                );
-            }
+        for (let barrier of track.getBarrierLines()) {
+            p.objects.push(
+                StaticObject.createByLineAndType(
+                    [
+                        [(barrier[0][0] / trackScale) + minPos[0], (barrier[0][1] / trackScale) + minPos[1]],
+                        [(barrier[1][0] / trackScale) + minPos[0], (barrier[1][1] / trackScale) + minPos[1]],
+                    ],
+                    staticObjectType,
+                    referencePoints,
+                    )
+            );
         }
 
         p.stringify();

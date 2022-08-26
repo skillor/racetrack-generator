@@ -382,8 +382,14 @@ export class TrackGenerator {
 
             const foundEnd = this.pointAngleMatches(currentPos, currentAngle, endPos, endAngle);
             const segementCount = traversedGates.length;
-            if (foundEnd && segementCount >= +this.settings.minSegments ||
+            const finishedTrack = foundEnd && segementCount >= +this.settings.minSegments;
+            if (finishedTrack ||
                 segementCount >= +this.settings.maxSegments) {
+
+                if (finishedTrack) {
+                    traversedGates.push(this.endGate);
+                }
+
                 console.log(segementCount + ' segments');
                 console.log(prevCollisions + ' collisions');
                 return [traversedGates, foundEnd, iterationCount];
@@ -464,9 +470,6 @@ export class TrackGenerator {
 
                 for (let i = 0; i < n; i++) {
                     if (i > 0) this.track.gates.push(gates[i]);
-
-                    // if (i > 0) this.track.drawGate(this.track.debugCanvasContext, gates[i]);
-                    // this.track.drawLine(this.track.debugCanvasContext, [this.gridPostoPos(path[i]), this.gridPostoPos(path[i - 1])]);
                 }
 
                 return [generationTime, solution[2]];
