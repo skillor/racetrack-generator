@@ -1,9 +1,11 @@
+import { Point } from "../track-generator/point";
 import { Visitor } from "./object-visitor";
+import { Prefab } from "./prefab";
 import * as THREE from "./three-math";
 
 export class PrefabObject {
-    type?: string;
     name?: string | null;
+    type?: string;
     pos?: number[];
     rot?: number[];
     scale: number[] = [1, 1, 1];
@@ -35,15 +37,27 @@ export class PrefabObject {
         return p;
     }
 
+    static pointFromPrefab(p: Point, scale: number = 1, prefab: Prefab | undefined): Point {
+        let min = [0, 0];
+        if (prefab !== undefined) {
+            min[0] = prefab.minPos[0];
+            min[1] = prefab.minPos[1];
+        }
+        return [(p[0] - min[0]) * scale, (p[1] - min[1]) * scale];
+    }
+
     setByObject(obj: any) {
         this.type = obj.type;
         this.name = obj.name;
         let pos;
+        let scale;
         let rot;
         for (let expr of obj.content) {
             if (expr.type == 'assign') {
                 if (expr.assign.name == 'position') {
                     pos = expr.assign.value;
+                } else if (expr.assign.name == 'scale') {
+                    scale = expr.assign.value;
                 } else if (expr.assign.name == 'rotationMatrix') {
                     rot = expr.assign.value;
                 }
@@ -53,9 +67,13 @@ export class PrefabObject {
         if (pos !== undefined) {
             this.pos = pos.split(' ').map((x: string) => +x);
         }
+        if (scale !== undefined) {
+            this.scale = scale.split(' ').map((x: string) => +x);
+        }
         if (rot !== undefined) {
             rot = rot.split(' ').map((x: string) => +x);
             this.rot = PrefabObject.rotationMatrixToEuler(rot);
         }
+
     }
 }

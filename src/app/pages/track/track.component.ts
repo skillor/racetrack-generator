@@ -8,6 +8,7 @@ import { GeneratorMode } from 'src/app/shared/track-generator/generator-modes';
 import { Settings } from 'src/app/shared/track-generator/settings';
 import { Track } from 'src/app/shared/track-generator/track';
 import { TrackGenerator } from 'src/app/shared/track-generator/track-generator';
+import { Point } from 'src/app/shared/track-generator/point';
 
 @Component({
     selector: 'app-track',
@@ -45,7 +46,15 @@ export class TrackComponent implements AfterViewInit {
     startGate: string;
     endGate: string;
 
+    prefabScale: string;
+    collisionPrefix: string;
+
+
     constructor(private storageService: StorageService) {
+        this.prefabScale = this.storageService.load('prefab_scale', '2');
+
+        this.collisionPrefix = this.storageService.load('collision_prefix', 'collision_');
+
         this.strokeSize = this.storageService.load('stroke_size', '1');
 
         this.startGate = this.storageService.load('track_start', '[[50, 10], [50, 0]]');
@@ -166,6 +175,8 @@ export class TrackComponent implements AfterViewInit {
     }
 
     saveConfig() {
+        this.storageService.save('prefab_scale', this.prefabScale);
+
         this.storageService.save('stroke_size', this.strokeSize);
 
         this.storageService.save('track_start', this.startGate);
@@ -223,8 +234,8 @@ export class TrackComponent implements AfterViewInit {
             ],
         );
 
-        this.track.drawGate(this.track.debugCanvasContext, startGate, '#880', '#08f');
-        this.track.drawGate(this.track.debugCanvasContext, endGate, '#f80', '#088');
+        Track.drawGate(this.track.debugCanvasContext, startGate, '#880', '#08f');
+        Track.drawGate(this.track.debugCanvasContext, endGate, '#f80', '#088');
 
         this.addSegments();
     }
@@ -266,7 +277,6 @@ export class TrackComponent implements AfterViewInit {
     }
 
     prefab?: Prefab = undefined;
-    prefabScale: string = '5';
 
     private prefabPointToPoint(p: number[]): number[] {
         const scale = +this.prefabScale;
@@ -323,8 +333,22 @@ export class TrackComponent implements AfterViewInit {
         input.click();
     }
 
-    objectNames(): StaticObjectType[] {
-        return StaticObject.types;
+    objectTypes(): StaticObjectType[] {
+        return Object.values(StaticObject.shapeTypes);
+    }
+
+    autoCollision() {
+        if (this.prefab === undefined) return;
+        for (let obj of this.prefab.objects) {
+            if (obj.name?.startsWith(this.collisionPrefix)) this.makeCollision(obj);
+        }
+    }
+
+    makeCollision(obj: PrefabObject): void {
+        const sobj = <StaticObject>obj;
+        if (sobj.hasOwnProperty('shapeType') && sobj.shapeType === undefined) return;
+        const box = sobj.get2DBox(+this.prefabScale, this.prefab);
+        Track.drawPolygon(this.collisionCanvas!.getContext('2d'), box, '#fff');
     }
 
     useAsStart(obj: PrefabObject): void {

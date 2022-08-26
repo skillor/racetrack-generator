@@ -54,7 +54,9 @@ export class JsonContentVisitor {
             "scale": o.scale!,
             "shapeName": o.shapeName!,
             "isRenderEnabled":false,
-            "useInstanceRenderData":true
+            "useInstanceRenderData":true,
+            "collisionType":"Visible Mesh",
+            "prebuildCollisionData":true,
         }));
     }
 }

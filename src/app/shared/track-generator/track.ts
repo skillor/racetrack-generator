@@ -9,21 +9,21 @@ export class Track {
     trackCanvasContext: any | null = null;
     gates: Line[];
 
-    drawPoint(context: any | null, point: Point, color: string = '#fff') {
+    static drawPoint(context: any | null, point: Point, color: string = '#fff') {
         if (context === null) return;
 
         context.fillStyle = color;
         context.fillRect(point[0] - 1, point[1] - 1, 2, 2);
     }
 
-    drawGate(context: any | null, gate: Line, leftColor = '#f00', rightColor = '#0f0') {
+    static drawGate(context: any | null, gate: Line, leftColor = '#f00', rightColor = '#0f0') {
         if (context === null) return;
 
         this.drawPoint(context, gate[0], leftColor);
         this.drawPoint(context, gate[1], rightColor);
     }
 
-    drawLine(context: any | null, line: Line, color = '#f00') {
+    static drawLine(context: any | null, line: Line, color = '#f00') {
         if (context === null) return;
 
         context.strokeStyle = color;
@@ -33,7 +33,35 @@ export class Track {
         context.moveTo(line[0][0], line[0][1]);
         context.lineTo(line[1][0], line[1][1]);
 
+        context.closePath();
+
         context.stroke();
+    }
+
+    static drawPolygon(
+        context: any | null,
+        points: Point[],
+        fillColor: string | undefined = '#fff',
+        strokeColor: string | undefined = '#fff',
+    ) {
+        if (context === null) return;
+        if (points.length == 0) return;
+
+        if (fillColor !== undefined) context.fillStyle = fillColor;
+        if (strokeColor !== undefined) context.strokeStyle = strokeColor;
+
+        context.beginPath();
+
+        context.moveTo(points[0][0], points[0][1]);
+        for (let i = 1; i < points.length; i++) {
+            context.lineTo(points[i][0], points[i][1]);
+        }
+        context.lineTo(points[0][0], points[0][1]);
+
+        context.closePath();
+
+        if (fillColor !== undefined) context.fill();
+        if (strokeColor !== undefined) context.stroke();
     }
 
     constructor(
@@ -96,11 +124,11 @@ export class Track {
         if (n < 0) n = this.gates.length;
 
         for (let b of this.getBarrierLines(off, n)) {
-            this.drawLine(this.trackCanvasContext, b, '#fff');
+            Track.drawLine(this.trackCanvasContext, b, '#fff');
         }
 
         for (let i = off; i < n; i++) {
-            this.drawGate(this.trackCanvasContext, this.gates[i]);
+            Track.drawGate(this.trackCanvasContext, this.gates[i]);
         }
     }
 }

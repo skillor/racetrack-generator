@@ -113,22 +113,10 @@
 
             <button class="btn" (click)="importPrefab()">Import Prefab</button>
 
-            <div class="overflow-x-auto">
-                <table class="table table-zebra table-compact w-full">
-                    <tbody>
-                        <tr *ngFor="let obj of prefab?.objects">
-                            <td><button class="btn" (click)="useAsStart(obj)">Start</button></td>
-                            <td><button class="btn" (click)="useAsEnd(obj)">End</button></td>
-                            <td>{{ obj | json }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
             <div class="dropdown">
                 <label tabindex="0" class="btn m-1">Export Prefab</label>
                 <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box">
-                    <li *ngFor="let obj of objectNames()"><button class="btn" (click)="exportPrefab(obj)">{{obj.label}}</button></li>
+                    <li *ngFor="let obj of objectTypes()"><button class="btn" (click)="exportPrefab(obj)">{{obj.label}}</button></li>
                 </ul>
             </div>
 
@@ -142,8 +130,30 @@
             <div class="dropdown">
                 <label tabindex="0" class="btn m-1">Export Mod</label>
                 <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box">
-                    <li *ngFor="let obj of objectNames()"><button class="btn" (click)="exportMod(obj)">{{obj.label}}</button></li>
+                    <li *ngFor="let obj of objectTypes()"><button class="btn" (click)="exportMod(obj)">{{obj.label}}</button></li>
                 </ul>
+            </div>
+
+            <div class="form-control w-full max-w-xs">
+                <label class="label">
+                    <span class="label-text">Collision Prefix</span>
+                </label>
+                <input [(ngModel)]="collisionPrefix" type="text" placeholder="collision_" class="input input-bordered w-full max-w-xs" />
+            </div>
+
+            <button class="btn" (click)="autoCollision()">Auto Collision</button>
+
+            <div class="overflow-x-auto">
+                <table class="table table-zebra table-compact w-full">
+                    <tbody>
+                        <tr *ngFor="let obj of prefab?.objects">
+                            <td><button class="btn" (click)="useAsStart(obj)">Start</button></td>
+                            <td><button class="btn" (click)="useAsEnd(obj)">End</button></td>
+                            <td><button class="btn" (click)="makeCollision(obj)">Collision</button></td>
+                            <td>{{ obj | json }}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 

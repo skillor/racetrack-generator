@@ -11,12 +11,12 @@ export class TrackGenerator {
     settings: Settings;
     static TWO_PI = Math.PI * 2;
 
-    private pointEquals(point1: Point, point2: Point): boolean {
+    static pointEquals(point1: number[], point2: number[]): boolean {
         return point1[0] == point2[0] && point1[1] == point2[1];
     }
 
-    private lineEqualsStrict(line1: Line, line2: Line): boolean {
-        return this.pointEquals(line1[0], line2[0]) && this.pointEquals(line1[1], line2[1]);
+    static lineEqualsStrict(line1: Line, line2: Line): boolean {
+        return this.pointEquals([line1[0][0], line1[0][1]], [line2[0][0], line2[0][1]]) && this.pointEquals([line1[1][0], line1[1][1]], [line2[1][0], line2[1][1]]);
     }
 
     private gateCenterPos(gate: Line): Point {
@@ -44,7 +44,7 @@ export class TrackGenerator {
         return Math.atan2(vector[1], vector[0])
     }
 
-    private angleToVector(angle: number): Point {
+    static angleToVector(angle: number): Point {
         return [Math.cos(angle), Math.sin(angle)];
     }
 
@@ -58,6 +58,25 @@ export class TrackGenerator {
 
     static gateAngle(gate: Line): number {
         return this.normalizeAngle(this.lineAngle(gate) - Math.PI * 0.5);
+    }
+
+    static rotatePoint(p: Point, angle: number): Point {
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+        return [cos * p[0] - sin * p[1], sin * p[0] + cos * p[1]];
+    }
+
+    static addPoints(p1: Point, p2: Point): Point {
+        return [p1[0] + p2[0], p1[1] + p2[1]];
+    }
+
+    static rotatedRect(pos: Point, halfSize: Point, angle: number): Point[] {
+        return [
+            this.addPoints(pos, this.rotatePoint(halfSize, angle)),
+            this.addPoints(pos, this.rotatePoint([halfSize[0], -halfSize[1]], angle)),
+            this.addPoints(pos, this.rotatePoint([-halfSize[0], -halfSize[1]], angle)),
+            this.addPoints(pos, this.rotatePoint([-halfSize[0], halfSize[1]], angle)),
+        ];
     }
 
     static lineLengthUnnormed(line: Line): number {
@@ -378,7 +397,7 @@ export class TrackGenerator {
             const currentGridPos = this.posAngleToGrid(currentPos, currentAngle);
             visited[currentGridPos[0]][currentGridPos[1]][currentGridPos[2]] = true;
 
-            this.track.drawPoint(this.track.debugCanvasContext, currentPos, '#fff');
+            Track.drawPoint(this.track.debugCanvasContext, currentPos, '#fff');
 
             const foundEnd = this.pointAngleMatches(currentPos, currentAngle, endPos, endAngle);
             const segementCount = traversedGates.length;
