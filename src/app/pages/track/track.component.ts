@@ -90,7 +90,8 @@ export class TrackComponent implements AfterViewInit {
             this.mouseDown = false;
         } else if (res == 'move') {
             if (this.mouseDown) {
-                this.drawCanvas(e.clientX - this.collisionCanvas!.offsetLeft, e.clientY - this.collisionCanvas!.offsetTop);
+                const br = this.collisionCanvas!.getBoundingClientRect();
+                this.drawCanvas(e.clientX - br.left, e.clientY - br.top);
             }
         }
     }
