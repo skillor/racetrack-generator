@@ -46,6 +46,22 @@ export class PrefabObject {
         return [(p[0] - min[0]) * scale, (p[1] - min[1]) * scale];
     }
 
+    isStartObject(): boolean {
+        return !!this.name && (this.name.includes('start') || this.name.includes('start_end'));
+    }
+
+    isEndObject(): boolean {
+        return !!this.name && (this.name.includes('end') || this.name.includes('start_end'));
+    }
+
+    isCollision(): boolean {
+        return !!this.name && this.name.includes('collision');
+    }
+
+    isSpecial(): boolean {
+        return this.isStartObject() || this.isEndObject() || this.isCollision();
+    }
+
     setByObject(obj: any) {
         this.type = obj.type;
         this.name = obj.name;

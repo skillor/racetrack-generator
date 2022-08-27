@@ -13,6 +13,7 @@ export class Prefab {
     minPos: number[] = [Infinity, Infinity, Infinity];
     maxPos: number[] = [-Infinity, -Infinity, -Infinity];
     size: number[] = [0, 0, 0];
+    rotation?: number = undefined;
 
     constructor() {
     }
@@ -101,12 +102,22 @@ export class Prefab {
                 }
             }
 
+
             for (let obj of this.objects) {
-                if (obj.pos !== undefined) {
-                    for (let i = 0; i < obj.pos.length; i++) {
-                        this.minPos[i] = Math.min(obj.pos[i], this.minPos[i]);
-                        this.maxPos[i] = Math.max(obj.pos[i], this.maxPos[i]);
+                if (!obj.isSpecial()) {
+                    if (this.rotation === undefined) this.rotation = obj.rot![2];
+                    else if (this.rotation != obj.rot![2]) {
+                        console.warn('object rotation does not match');
+                        console.log(this.rotation);
+                        console.log(obj);
                     }
+                };
+            }
+
+            for (let obj of this.objects) {
+                for (let i = 0; i < obj.pos!.length; i++) {
+                    this.minPos[i] = Math.min(obj.pos![i], this.minPos[i]);
+                    this.maxPos[i] = Math.max(obj.pos![i], this.maxPos[i]);
                 }
             }
 

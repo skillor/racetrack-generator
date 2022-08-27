@@ -9,7 +9,6 @@ import { GeneratorMode } from 'src/app/shared/track-generator/generator-modes';
 import { Settings } from 'src/app/shared/track-generator/settings';
 import { Track } from 'src/app/shared/track-generator/track';
 import { TrackGenerator } from 'src/app/shared/track-generator/track-generator';
-import { Point } from 'src/app/shared/track-generator/point';
 
 @Component({
     selector: 'app-track',
@@ -48,7 +47,6 @@ export class TrackComponent implements AfterViewInit {
     endGate: string;
 
     prefabScale: string;
-    collisionPrefix: string;
 
     deleteBarriers: string = '';
 
@@ -62,10 +60,6 @@ export class TrackComponent implements AfterViewInit {
     trackName: string;
     modIncludeTracks: string;
 
-    startName = 'start';
-    endName = 'start';
-    startEndName = 'start_end';
-
     constructor(
         private storageService: StorageService,
         private http: HttpClient,
@@ -77,8 +71,6 @@ export class TrackComponent implements AfterViewInit {
         }
 
         this.prefabScale = this.storageService.load('prefab_scale', '2');
-
-        this.collisionPrefix = this.storageService.load('collision_prefix', 'collision_');
 
         this.strokeSize = this.storageService.load('stroke_size', '1');
 
@@ -392,19 +384,15 @@ export class TrackComponent implements AfterViewInit {
     autoCollision() {
         if (this.prefab === undefined) return;
         for (let obj of this.prefab.objects) {
-            if (obj.name?.startsWith(this.collisionPrefix)) this.makeCollision(obj);
+            if (obj.isCollision()) this.makeCollision(obj);
         }
     }
 
     autoStartEnd() {
         if (this.prefab === undefined) return;
         for (let obj of this.prefab.objects) {
-            if (obj.name?.endsWith(this.startName)) this.useAsStart(obj);
-            if (obj.name?.endsWith(this.endName)) this.useAsEnd(obj);
-            if (obj.name?.endsWith(this.startEndName)) {
-                this.useAsStart(obj);
-                this.useAsEnd(obj);
-            }
+            if (obj.isStartObject()) this.useAsStart(obj);
+            if (obj.isEndObject()) this.useAsEnd(obj);
         }
     }
 
