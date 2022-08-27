@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import * as fflate from 'fflate';
 import { PrefabObject } from 'src/app/shared/prefab-parser/prefab-object';
 import { Prefab } from 'src/app/shared/prefab-parser/prefab';
@@ -49,8 +50,15 @@ export class TrackComponent implements AfterViewInit {
     prefabScale: string;
     collisionPrefix: string;
 
+    prefabNames = [
+        'westcoast_track_parkinglot.prefab',
+    ];
 
-    constructor(private storageService: StorageService) {
+
+    constructor(
+        private storageService: StorageService,
+        private http: HttpClient,
+    ) {
         this.prefabScale = this.storageService.load('prefab_scale', '2');
 
         this.collisionPrefix = this.storageService.load('collision_prefix', 'collision_');
@@ -331,6 +339,17 @@ export class TrackComponent implements AfterViewInit {
             fileReader.readAsText(file);
         };
         input.click();
+    }
+
+    loadPrefab(name: string) {
+        this.http.get('../../../assets/prefabs/' + name, { responseType: 'text' }).subscribe((content) => {
+            try {
+                this.parsePrefab(content);
+                this.autoCollision();
+            } catch (err) {
+                console.error(err);
+            }
+        });
     }
 
     objectTypes(): StaticObjectType[] {

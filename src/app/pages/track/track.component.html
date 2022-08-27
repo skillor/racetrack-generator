@@ -111,7 +111,20 @@
                     class="input input-bordered w-full max-w-xs" />
             </div>
 
-            <button class="btn" (click)="importPrefab()">Import Prefab</button>
+            <div class="flex">
+                <button class="btn mr-0 rounded-r-none" (click)="importPrefab()">Import Prefab</button>
+                <div class="h-auto w-1 bg-neutral-focus"></div>
+                <div class="dropdown">
+                    <label tabindex="0" class="btn rounded-l-none ml-0 mr-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </label>
+                    <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
+                      <li *ngFor="let name of prefabNames"><button class="btn" (click)="loadPrefab(name)">{{name}}</button></li>
+                    </ul>
+                  </div>
+            </div>
 
             <div class="dropdown">
                 <label tabindex="0" class="btn m-1">Export Prefab</label>
