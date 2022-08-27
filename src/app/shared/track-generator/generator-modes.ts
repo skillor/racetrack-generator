@@ -1,1 +1,1 @@
-export type GeneratorMode = "best" | "worst" | "random";
+export type GeneratorMode = "shortest" | "longest" | "random";

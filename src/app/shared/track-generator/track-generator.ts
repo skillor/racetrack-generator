@@ -483,7 +483,7 @@ export class TrackGenerator {
 
             let diretions = this.predictDirections(currentPos, endPos, currentAngle);
             switch (this.mode) {
-                case 'worst':
+                case 'longest':
                     diretions = diretions.reverse();
                     break;
                 case 'random':

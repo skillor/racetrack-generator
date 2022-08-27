@@ -20,12 +20,12 @@
             <input [(ngModel)]="inputSeed" type="text" placeholder="" class="input input-bordered w-full max-w-xs" />
         </div>
         <div class="btn-group btn-group-vertical">
-            <button [class.btn-active]="generatorMode == 'best'" (click)="generatorMode = 'best'"
-                class="btn">Best</button>
+            <button [class.btn-active]="generatorMode == 'shortest'" (click)="generatorMode = 'shortest'"
+                class="btn">Shortest</button>
             <button [class.btn-active]="generatorMode == 'random'" (click)="generatorMode = 'random'"
                 class="btn">Random</button>
-            <button [class.btn-active]="generatorMode == 'worst'" (click)="generatorMode = 'worst'"
-                class="btn">Worst</button>
+            <button [class.btn-active]="generatorMode == 'longest'" (click)="generatorMode = 'longest'"
+                class="btn">Longest</button>
         </div>
         <button class="btn" (click)="generateTrack()">Generate</button>
         <div class="flex flex-col">
