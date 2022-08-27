@@ -146,6 +146,20 @@
                 <input [(ngModel)]="levelName" type="text" placeholder="west_coast_usa" class="input input-bordered w-full max-w-xs" />
             </div>
 
+            <div class="form-control w-full max-w-xs">
+                <label class="label">
+                    <span class="label-text">Track Name</span>
+                </label>
+                <input [(ngModel)]="trackName" type="text" placeholder="racetrack_1" class="input input-bordered w-full max-w-xs" />
+            </div>
+
+            <div class="dropdown">
+                <label tabindex="0" class="btn m-1">Include Tracks</label>
+                <div tabindex="0" class="compact dropdown-content shadow bg-base-100 rounded-box w-64">
+                    <textarea [(ngModel)]="modIncludeTracks" class="textarea textarea-primary w-full" placeholder="racetrack_1"></textarea>
+                </div>
+              </div>
+
             <div class="dropdown">
                 <label tabindex="0" class="btn m-1">Export Mod</label>
                 <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box">

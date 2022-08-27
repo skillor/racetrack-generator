@@ -54,13 +54,28 @@ export class TrackComponent implements AfterViewInit {
 
     prefabNames = [
         'westcoast_track_parkinglot.prefab',
+        'westcoast_parking_garage.prefab',
     ];
 
+    trackNamePrefix = 'racetrack_';
+    amountTracks = 5;
+    trackName: string;
+    modIncludeTracks: string;
+
+    startName = 'start';
+    endName = 'start';
+    startEndName = 'start_end';
 
     constructor(
         private storageService: StorageService,
         private http: HttpClient,
     ) {
+        this.trackName = this.trackNamePrefix + (Math.floor(Math.random() * this.amountTracks) + 1);
+        this.modIncludeTracks = '';
+        for (let i = 0; i < this.amountTracks; i++) {
+            this.modIncludeTracks += this.trackNamePrefix + (i+1) + '\n';
+        }
+
         this.prefabScale = this.storageService.load('prefab_scale', '2');
 
         this.collisionPrefix = this.storageService.load('collision_prefix', 'collision_');
@@ -199,7 +214,7 @@ export class TrackComponent implements AfterViewInit {
         this.storageService.save('track_settings', this.settings.serialize());
     }
 
-    generateTrack() {
+    setSize() {
         const width = +this.trackWidth;
         const height = +this.trackHeight;
 
@@ -219,6 +234,15 @@ export class TrackComponent implements AfterViewInit {
         this.clearCollisions();
 
         context.putImageData(data, 0, 0);
+    }
+
+    generateTrack() {
+        this.setSize();
+
+        const width = +this.trackWidth;
+        const height = +this.trackHeight;
+
+        const context = this.collisionCanvas!.getContext('2d')!;
 
         const startGate = JSON.parse(this.startGate);
         const endGate = JSON.parse(this.endGate);
@@ -226,7 +250,7 @@ export class TrackComponent implements AfterViewInit {
         const match = new Uint8ClampedArray([255, 255, 255]);
         const collisions: boolean[][] = new Array<boolean[]>(height);
         for (let y = 0; y < height; y++) {
-            collisions[y] = new Array<boolean>(width);
+            collisions[y] = new Array<boolean>(+this.trackWidth);
             for (let x = 0; x < width; x++) {
                 collisions[y][x] = this.colorMatch(context.getImageData(x, y, 1, 1).data, match);
             }
@@ -352,7 +376,9 @@ export class TrackComponent implements AfterViewInit {
         this.http.get('./assets/prefabs/' + name, { responseType: 'text' }).subscribe((content) => {
             try {
                 this.parsePrefab(content);
+                this.setSize();
                 this.autoCollision();
+                this.autoStartEnd();
             } catch (err) {
                 console.error(err);
             }
@@ -369,6 +395,19 @@ export class TrackComponent implements AfterViewInit {
             if (obj.name?.startsWith(this.collisionPrefix)) this.makeCollision(obj);
         }
     }
+
+    autoStartEnd() {
+        if (this.prefab === undefined) return;
+        for (let obj of this.prefab.objects) {
+            if (obj.name?.endsWith(this.startName)) this.useAsStart(obj);
+            if (obj.name?.endsWith(this.endName)) this.useAsEnd(obj);
+            if (obj.name?.endsWith(this.startEndName)) {
+                this.useAsStart(obj);
+                this.useAsEnd(obj);
+            }
+        }
+    }
+
 
     makeCollision(obj: PrefabObject): void {
         const sobj = <StaticObject>obj;
@@ -412,19 +451,21 @@ export class TrackComponent implements AfterViewInit {
 
     exportMod(obj: StaticObjectType): void {
         const prefab = Prefab.createByTrack(this.track, +this.prefabScale, obj, this.prefab,);
-        const trackName = 'racetrack';
 
         const zipped = fflate.zipSync({
-            // Directories can be nested structures, as in an actual filesystem
             ['levels/' + this.levelName + '/main/items.level.json']:
                 fflate.strToU8(this.jsonLines(
                     {"name":"MissionGroup","class":"SimGroup","enabled":"1",'persistentId': Prefab.createPersitentId()},
                     {"name":"GeneratedTracks","class":"SimGroup","enabled":"1",'persistentId': Prefab.createPersitentId()},
-                )),
+                 )),
             ['levels/' + this.levelName + '/main/GeneratedTracks/items.level.json']:
-                fflate.strToU8(this.jsonLines({"name":trackName,"class":"SimGroup","__parent":"GeneratedTracks","groupPosition":"0 0 0",'persistentId': Prefab.createPersitentId()})),
-            ['levels/' + this.levelName + '/main/GeneratedTracks/' + trackName + '/items.level.json']:
-                fflate.strToU8(prefab.toJson(trackName)),
+                fflate.strToU8(this.jsonLines(
+                    ...this.modIncludeTracks.split('\n').filter((v) => v).map((v) => {
+                        return {"name":v,"class":"SimGroup","__parent":"GeneratedTracks","groupPosition":"0 0 0",'persistentId': Prefab.createPersitentId()};
+                    })
+                )),
+            ['levels/' + this.levelName + '/main/GeneratedTracks/' + this.trackName + '/items.level.json']:
+                fflate.strToU8(prefab.toJson(this.trackName)),
         }, {
             level: 1,
             mtime: new Date()
@@ -435,7 +476,7 @@ export class TrackComponent implements AfterViewInit {
         });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = trackName + '.zip';
+        a.download = this.trackName + '.zip';
         a.click();
     }
 }
