@@ -99,6 +99,12 @@
         </div>
         <div>
             <h4>Track</h4>
+            <div class="form-control w-full max-w-xs">
+                <label class="label">
+                    <span class="label-text">Delete Barriers</span>
+                </label>
+                <input [(ngModel)]="deleteBarriers" (ngModelChange)="changeDeleteBarriers()" type="text" placeholder="0,1" class="input input-bordered w-full max-w-xs" />
+            </div>
             <canvas class="border" #trackCanvas></canvas>
         </div>
 

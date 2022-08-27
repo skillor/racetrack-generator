@@ -50,6 +50,8 @@ export class TrackComponent implements AfterViewInit {
     prefabScale: string;
     collisionPrefix: string;
 
+    deleteBarriers: string = '';
+
     prefabNames = [
         'westcoast_track_parkinglot.prefab',
     ];
@@ -284,6 +286,11 @@ export class TrackComponent implements AfterViewInit {
         this.track.drawTrack();
     }
 
+    changeDeleteBarriers() {
+        this.track.deletedBarriers = this.deleteBarriers.split(',').map((v) => +v);
+        this.track.drawTrack();
+    }
+
     prefab?: Prefab = undefined;
 
     private prefabPointToPoint(p: number[]): number[] {
@@ -342,7 +349,7 @@ export class TrackComponent implements AfterViewInit {
     }
 
     loadPrefab(name: string) {
-        this.http.get('../../../assets/prefabs/' + name, { responseType: 'text' }).subscribe((content) => {
+        this.http.get('./assets/prefabs/' + name, { responseType: 'text' }).subscribe((content) => {
             try {
                 this.parsePrefab(content);
                 this.autoCollision();

@@ -8,6 +8,7 @@ export class Track {
     debugCanvasContext: any | null = null;
     trackCanvasContext: any | null = null;
     gates: Line[];
+    deletedBarriers: number[];
 
     static drawPoint(context: any | null, point: Point, color: string = '#fff') {
         if (context === null) return;
@@ -71,6 +72,7 @@ export class Track {
         debugCanvas: any | null = null,
         trackCanvas: any | null = null,
         gates: Line[],
+        deletedBarriers: number[] = [],
     ) {
         this.width = width;
         this.height = height;
@@ -80,15 +82,16 @@ export class Track {
         if (debugCanvas !== null) this.debugCanvasContext = debugCanvas.getContext("2d");
 
         this.gates = gates;
+        this.deletedBarriers = deletedBarriers;
     }
 
     serialize(): string {
-        return JSON.stringify({ width: this.width, height: this.height, collisions: this.collisions, gates: this.gates });
+        return JSON.stringify({ width: this.width, height: this.height, collisions: this.collisions, gates: this.gates, deletedBarriers: this.deletedBarriers });
     }
 
     static unserialize(json: string): Track {
         const obj = JSON.parse(json);
-        return new Track(obj.width, obj.height, obj.collisions, null, null, obj.gates);
+        return new Track(obj.width, obj.height, obj.collisions, null, null, obj.gates, obj.deletedBarriers);
     }
 
     getBarrierLines(off: number = 0, n: number = -1): Line[] {
@@ -96,10 +99,12 @@ export class Track {
         const lines: Line[] = [];
         for (let i = n - 1; i > off + 1; i--) {
             for (let j of [0, 1] as (0 | 1)[]) {
-                lines.push([
-                    this.gates[i][j],
-                    this.gates[i - 1][j],
-                ]);
+                if (!this.deletedBarriers.includes((i - 1) * 2 + j)) {
+                    lines.push([
+                        this.gates[i][j],
+                        this.gates[i - 1][j],
+                    ]);
+                }
             }
         }
         return lines;
