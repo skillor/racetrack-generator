@@ -77,6 +77,10 @@ export class Prefab {
         return PrefabObject.createByObject(obj);
     }
 
+    getSortedBounds(): PrefabObject[] {
+        return this.objects.filter((o) => o.isBounds()).sort((a, b) => a.getBoundsNumber() - b.getBoundsNumber());
+    }
+
     private stringify() {
         const v = new PrefabVisitor();
         v.visit(this);
@@ -100,18 +104,6 @@ export class Prefab {
                         }
                     }
                 }
-            }
-
-
-            for (let obj of this.objects) {
-                if (!obj.isSpecial()) {
-                    if (this.rotation === undefined) this.rotation = obj.rot![2];
-                    else if (this.rotation != obj.rot![2]) {
-                        console.warn('object rotation does not match');
-                        console.log(this.rotation);
-                        console.log(obj);
-                    }
-                };
             }
 
             for (let obj of this.objects) {

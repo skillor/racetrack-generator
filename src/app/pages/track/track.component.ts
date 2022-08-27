@@ -138,10 +138,10 @@ export class TrackComponent implements AfterViewInit {
         ctx.fillRect(x - +this.strokeSize, y - +this.strokeSize, +this.strokeSize + 1, +this.strokeSize + 1);
     }
 
-    clearCollisions(): void {
+    clearCollisions(color: string = '#000'): void {
         this.collisionCanvas!.width = this.collisionCanvas!.width;
         const ctx = this.collisionCanvas!.getContext('2d')!;
-        ctx.fillStyle = '#000';
+        ctx.fillStyle = color;
         ctx.fillRect(0, 0, this.collisionCanvas!.width, this.collisionCanvas!.height);
     }
 
@@ -309,19 +309,16 @@ export class TrackComponent implements AfterViewInit {
 
     prefab?: Prefab = undefined;
 
-    private prefabPointToPoint(p: number[]): number[] {
-        const scale = +this.prefabScale;
-        const r: number[] = [];
-        for (let i = 0; i < p.length; i++) {
-            r.push(Math.round((p[i] - this.prefab!.minPos[i]) * scale));
-        }
-        return r;
-    }
-
     private parsePrefab(content: string): void {
         this.prefab = Prefab.createByContent(content);
         this.trackWidth = '' + Math.round(this.prefab.size[0] * +this.prefabScale);
         this.trackHeight = '' + Math.round(this.prefab.size[1] * +this.prefabScale);
+
+        this.clearCollisions();
+        this.setSize();
+        this.clearCollisions('#fff');
+        const points = this.prefab!.getSortedBounds().map((o) => PrefabObject.pointFromPrefab([o.pos![0], o.pos![1]], +this.prefabScale, this.prefab));
+        Track.drawPolygon(this.collisionCanvas!.getContext('2d')!, points, '#000');
     }
 
     importPrefab(): void {
@@ -368,7 +365,7 @@ export class TrackComponent implements AfterViewInit {
         this.http.get('./assets/prefabs/' + name, { responseType: 'text' }).subscribe((content) => {
             try {
                 this.parsePrefab(content);
-                this.setSize();
+
                 this.autoCollision();
                 this.autoStartEnd();
             } catch (err) {
@@ -405,16 +402,16 @@ export class TrackComponent implements AfterViewInit {
     }
 
     useAsStart(obj: PrefabObject): void {
-        const pos = this.prefabPointToPoint([obj.pos![0], obj.pos![1]]);
-        const angle = obj.rot![2];
+        const pos = PrefabObject.pointFromPrefab([obj.pos![0], obj.pos![1]], +this.prefabScale, this.prefab);
+        const angle = -obj.rot![2];
         this.startGate = JSON.stringify(
             TrackGenerator.pointToGate(<any>pos, angle, (+this.settings.minGateHalfSize + +this.settings.maxGateHalfSize) / 2, true)
         );
     }
 
     useAsEnd(obj: PrefabObject): void {
-        const pos = this.prefabPointToPoint([obj.pos![0], obj.pos![1]]);
-        const angle = obj.rot![2];
+        const pos = PrefabObject.pointFromPrefab([obj.pos![0], obj.pos![1]], +this.prefabScale, this.prefab);
+        const angle = -obj.rot![2];
         this.endGate = JSON.stringify(
             TrackGenerator.pointToGate(<any>pos, angle, (+this.settings.minGateHalfSize + +this.settings.maxGateHalfSize) / 2, true)
         );

@@ -162,9 +162,12 @@ export class TrackGenerator {
             [newGate[1], currentGate[1]],
         ];
 
-        if (this.hasPolyPixelCollision(next.concat([
-            [currentGate[0], currentGate[1]]
-        ]))) return true;
+        if (this.hasPolyPixelCollision([
+            currentGate[0],
+            newGate[0],
+            newGate[1],
+            currentGate[1],
+        ])) return true;
 
         for (let connection of next) {
             const currentGates = this.track.gates.concat(gates);
@@ -179,9 +182,19 @@ export class TrackGenerator {
         return false;
     }
 
+    private getLineBounds(l: Line): Rect {
+        return [
+            Math.min(l[0][1], l[1][1]),
+            Math.min(l[0][0], l[1][0]),
+            Math.max(l[0][0], l[1][0]),
+            Math.max(l[0][1], l[1][1]),
+        ];
+
+    }
+
     private getLinesBounds(lines: Line[]): Rect {
-        var top = Infinity, left = Infinity;
-        var right = -Infinity,  bottom = -Infinity;
+        let top = Infinity, left = Infinity;
+        let right = -Infinity, bottom = -Infinity;
         for (const l of lines) {
             top = Math.min(top, l[0][1], l[1][1]);
             left = Math.min(left, l[0][0], l[1][0]);
@@ -189,10 +202,10 @@ export class TrackGenerator {
             bottom = Math.max(bottom, l[0][1], l[1][1]);
         }
         return [
-            Math.floor(top),
-            Math.floor(left),
-            Math.floor(right),
-            Math.floor(bottom),
+            top,
+            left,
+            right,
+            bottom,
         ];
     }
 
@@ -203,11 +216,65 @@ export class TrackGenerator {
             rect1[3] > rect2[0];
     }
 
-    private hasPolyPixelCollision(lines: Line[]): boolean {
+    private lineIsValidY(y: number, line: Line): boolean {
+        if (y >= line[0][1] && y < line[1][1]) return true;
+        if (y >= line[1][1] && y < line[0][1]) return true;
+        return false;
+    }
+
+    private lineGetM(line: Line): number {
+        return (line[1][1] - line[0][1]) / (line[1][0] - line[0][0]);
+    }
+
+    private lineGetX(y: number, line: Line): number {
+        return 1 / this.lineGetM(line) * (y - line[0][1]) +  line[0][0];
+    }
+
+    private getLinesMeetY(y: number, lines: Line[]): number[] {
+        let meet: number[] = [];
+        for (let i = 0; i < lines.length; i++) {
+            const l = lines[i];
+            if (this.lineIsValidY(y, l)) {
+                meet.push(this.lineGetX(y, l));
+            }
+        }
+
+        //sort
+        // meet.sort();
+        for (let i = 0; i < meet.length; i++)
+            for (let j = i; j < meet.length; j++) {
+                if (meet[i] > meet[j]) {
+                    let temp = meet[i];
+                    meet[i] = meet[j];
+                    meet[j] = temp;
+                }
+            }
+
+        return  meet;
+    }
+
+    hasPolyPixelCollision(points: Point[]): boolean {
+        const lines: Line[] = [];
+
+        for (let i = 1; i < points.length; i++) {
+            lines.push([points[i - 1], points[i]]);
+        }
+        lines.push([points[points.length - 1], points[0]]);
+
         const b = this.getLinesBounds(lines);
-        for (let y = b[0]; y < b[3]; y++) {
-            for (let x = b[1]; x < b[2]; x++) {
-                if (this.track.collisions[y][x]) return true;
+        const minY = Math.floor(b[0]);
+        const maxY = Math.ceil(b[3]);
+
+        Track.drawPolygon(this.track.debugCanvasContext, points, null, '#f00');
+
+        for (let y = minY; y < maxY; y++) {
+            const meetPoint = this.getLinesMeetY(y, lines);
+
+            for (let i = 1; i < meetPoint.length; i += 2) {
+                const maxX = Math.ceil(meetPoint[i]);
+                for (let x = Math.floor(meetPoint[i - 1]); x < maxX; x++) {
+                    if (this.track.collisions[y][x]) return true;
+                }
             }
         }
         return false;

@@ -37,7 +37,7 @@ export class PrefabObject {
         return p;
     }
 
-    static pointFromPrefab(p: Point, scale: number = 1, prefab: Prefab | undefined): Point {
+    static pointFromPrefab(p: Point, scale: number = 1, prefab: Prefab | undefined = undefined): Point {
         let min = [0, 0];
         if (prefab !== undefined) {
             min[0] = prefab.minPos[0];
@@ -56,6 +56,14 @@ export class PrefabObject {
 
     isCollision(): boolean {
         return !!this.name && this.name.includes('collision');
+    }
+
+    isBounds(): boolean {
+        return !!this.name && this.name.includes('bounds');
+    }
+
+    getBoundsNumber(): number {
+        return +this.name!.substring(this.name!.lastIndexOf('_') + 1);
     }
 
     isSpecial(): boolean {

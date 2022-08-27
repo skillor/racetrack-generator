@@ -42,14 +42,14 @@ export class Track {
     static drawPolygon(
         context: any | null,
         points: Point[],
-        fillColor: string | undefined = '#fff',
-        strokeColor: string | undefined = '#fff',
+        fillColor: string | null = '#fff',
+        strokeColor: string | null = null,
     ) {
         if (context === null) return;
         if (points.length == 0) return;
 
-        if (fillColor !== undefined) context.fillStyle = fillColor;
-        if (strokeColor !== undefined) context.strokeStyle = strokeColor;
+        if (fillColor !== null) context.fillStyle = fillColor;
+        if (strokeColor !== null) context.strokeStyle = strokeColor;
 
         context.beginPath();
 
@@ -61,8 +61,8 @@ export class Track {
 
         context.closePath();
 
-        if (fillColor !== undefined) context.fill();
-        if (strokeColor !== undefined) context.stroke();
+        if (fillColor !== null) context.fill();
+        if (strokeColor !== null) context.stroke();
     }
 
     constructor(

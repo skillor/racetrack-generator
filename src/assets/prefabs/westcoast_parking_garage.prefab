@@ -4,7 +4,7 @@ $ThisPrefab = new SimGroup() {
    canSaveDynamicFields = "1";
       groupPosition = "0 0 0";
 
-   new TSStatic(level_1_start) {
+   new TSStatic(level_2_start) {
       shapeName = "/levels/west_coast_usa/art/shapes/objects/constructionbarrier.dae";
       dynamic = "0";
       playAmbient = "1";
@@ -19,14 +19,15 @@ $ThisPrefab = new SimGroup() {
       prebuildCollisionData = "0";
       renderNormals = "0";
       forceDetail = "-1";
-      position = "-391.908203 297.736664 101.365662";
+      position = "-392.479584 298.019287 101.365662";
       scale = "1 1 1";
-      rotationMatrix = "0.707106769 0.707106769 0 -0.707106769 0.707106769 0 0 0 1";
+      rotationMatrix = "-0.707106888 -0.707106769 0 0.707106769 -0.707106888 0 0 0 1";
       isRenderEnabled = "false";
       canSave = "1";
       canSaveDynamicFields = "1";
+      persistentId = "bbdf33a5-a041-4981-9dc9-4e908eaf0dff";
    };
-   new TSStatic(level_1_end) {
+   new TSStatic(level_2_end) {
       shapeName = "/levels/west_coast_usa/art/shapes/objects/constructionbarrier.dae";
       dynamic = "0";
       playAmbient = "1";
@@ -41,14 +42,15 @@ $ThisPrefab = new SimGroup() {
       prebuildCollisionData = "0";
       renderNormals = "0";
       forceDetail = "-1";
-      position = "-425.893402 263.751465 101.365662";
+      position = "-403.056213 308.595917 101.365662";
       scale = "1 1 1";
       rotationMatrix = "0.707106769 0.707106769 0 -0.707106769 0.707106769 0 0 0 1";
       isRenderEnabled = "false";
       canSave = "1";
       canSaveDynamicFields = "1";
+      persistentId = "1d0ef73d-d86d-459f-969f-4c8630d2686e";
    };
-   new TSStatic(level_1_4) {
+   new TSStatic(level_2_bounds_1) {
       shapeName = "/levels/west_coast_usa/art/shapes/objects/constructionbarrier.dae";
       dynamic = "0";
       playAmbient = "1";
@@ -63,14 +65,15 @@ $ThisPrefab = new SimGroup() {
       prebuildCollisionData = "0";
       renderNormals = "0";
       forceDetail = "-1";
-      position = "-431.254181 269.112244 101.365662";
+      position = "-385.357666 291.307404 101.365662";
       scale = "1 1 1";
-      rotationMatrix = "0.707106769 0.707106769 0 -0.707106769 0.707106769 0 0 0 1";
+      rotationMatrix = "-0.707106888 -0.707106769 0 0.707106769 -0.707106888 0 0 0 1";
       isRenderEnabled = "false";
       canSave = "1";
       canSaveDynamicFields = "1";
+      persistentId = "3c0dca9f-13ac-4718-9d90-b29164ab9978";
    };
-   new TSStatic(level_1_3) {
+   new TSStatic(level_2_bounds_2) {
       shapeName = "/levels/west_coast_usa/art/shapes/objects/constructionbarrier.dae";
       dynamic = "0";
       playAmbient = "1";
@@ -85,14 +88,15 @@ $ThisPrefab = new SimGroup() {
       prebuildCollisionData = "0";
       renderNormals = "0";
       forceDetail = "-1";
-      position = "-419.401215 257.267761 101.36351";
+      position = "-409.077637 315.027374 101.365662";
       scale = "1 1 1";
-      rotationMatrix = "0.707106769 0.707106769 0 -0.707106769 0.707106769 0 0 0 1";
+      rotationMatrix = "-0.707106888 -0.707106769 0 0.707106769 -0.707106888 0 0 0 1";
       isRenderEnabled = "false";
       canSave = "1";
       canSaveDynamicFields = "1";
+      persistentId = "50ebd62c-e08a-4dec-8de4-2111b4879689";
    };
-   new TSStatic(level_1_2) {
+   new TSStatic(level_2_bounds_3) {
       shapeName = "/levels/west_coast_usa/art/shapes/objects/constructionbarrier.dae";
       dynamic = "0";
       playAmbient = "1";
@@ -107,14 +111,15 @@ $ThisPrefab = new SimGroup() {
       prebuildCollisionData = "0";
       renderNormals = "0";
       forceDetail = "-1";
-      position = "-385.401367 291.267609 101.36351";
+      position = "-443.137909 280.967102 101.365662";
       scale = "1 1 1";
-      rotationMatrix = "0.707106769 0.707106769 0 -0.707106769 0.707106769 0 0 0 1";
+      rotationMatrix = "-0.707106888 -0.707106769 0 0.707106769 -0.707106888 0 0 0 1";
       isRenderEnabled = "false";
       canSave = "1";
       canSaveDynamicFields = "1";
+      persistentId = "88ed9ba5-dfa6-49a2-acfd-aff74e2103a2";
    };
-   new TSStatic(level_1_1) {
+   new TSStatic(level_2_collision_1) {
       shapeName = "/levels/west_coast_usa/art/shapes/objects/constructionbarrier.dae";
       dynamic = "0";
       playAmbient = "1";
@@ -129,12 +134,201 @@ $ThisPrefab = new SimGroup() {
       prebuildCollisionData = "0";
       renderNormals = "0";
       forceDetail = "-1";
-      position = "-397.250092 303.116333 101.365662";
+      position = "-406.206726 294.56778 101.365997";
+      scale = "0.883921266 0.809412599 1";
+      rotationMatrix = "-0.707106888 0.707106769 0 -0.707106769 -0.707106888 0 0 0 1";
+      isRenderEnabled = "false";
+      canSave = "1";
+      canSaveDynamicFields = "1";
+      persistentId = "d3ee3273-67a1-4871-8426-fd60e8a19018";
+   };
+   new TSStatic(level_2_collision_2) {
+      shapeName = "/levels/west_coast_usa/art/shapes/objects/constructionbarrier.dae";
+      dynamic = "0";
+      playAmbient = "1";
+      meshCulling = "0";
+      originSort = "0";
+      useInstanceRenderData = "1";
+      instanceColor = "white";
+      instanceColor1 = "white";
+      instanceColor2 = "white";
+      collisionType = "Collision Mesh";
+      decalType = "Collision Mesh";
+      prebuildCollisionData = "0";
+      renderNormals = "0";
+      forceDetail = "-1";
+      position = "-414.373138 286.401367 101.365997";
+      scale = "0.883921266 0.809412599 1";
+      rotationMatrix = "-0.707106888 0.707106769 0 -0.707106769 -0.707106888 0 0 0 1";
+      isRenderEnabled = "false";
+      canSave = "1";
+      canSaveDynamicFields = "1";
+      persistentId = "71523cb5-9a20-4bbc-8ab2-6f3a9a65f58b";
+   };
+   new TSStatic(level_3_start) {
+      shapeName = "/levels/west_coast_usa/art/shapes/objects/constructionbarrier.dae";
+      dynamic = "0";
+      playAmbient = "1";
+      meshCulling = "0";
+      originSort = "0";
+      useInstanceRenderData = "1";
+      instanceColor = "white";
+      instanceColor1 = "white";
+      instanceColor2 = "white";
+      collisionType = "Collision Mesh";
+      decalType = "Collision Mesh";
+      prebuildCollisionData = "0";
+      renderNormals = "0";
+      forceDetail = "-1";
+      position = "-392.479584 298.019287 104.582199";
+      scale = "1 1 1";
+      rotationMatrix = "-0.707106888 -0.707106769 0 0.707106769 -0.707106888 0 0 0 1";
+      isRenderEnabled = "false";
+      canSave = "1";
+      canSaveDynamicFields = "1";
+      persistentId = "b90bcff7-1008-4cb8-8e85-3ad3fc6ad193";
+   };
+   new TSStatic(level_3_end) {
+      shapeName = "/levels/west_coast_usa/art/shapes/objects/constructionbarrier.dae";
+      dynamic = "0";
+      playAmbient = "1";
+      meshCulling = "0";
+      originSort = "0";
+      useInstanceRenderData = "1";
+      instanceColor = "white";
+      instanceColor1 = "white";
+      instanceColor2 = "white";
+      collisionType = "Collision Mesh";
+      decalType = "Collision Mesh";
+      prebuildCollisionData = "0";
+      renderNormals = "0";
+      forceDetail = "-1";
+      position = "-403.056213 308.595917 104.572235";
       scale = "1 1 1";
       rotationMatrix = "0.707106769 0.707106769 0 -0.707106769 0.707106769 0 0 0 1";
       isRenderEnabled = "false";
       canSave = "1";
       canSaveDynamicFields = "1";
+      persistentId = "de080740-c76e-4ba5-9339-388846e5337b";
+   };
+   new TSStatic(level_3_bounds_1) {
+      shapeName = "/levels/west_coast_usa/art/shapes/objects/constructionbarrier.dae";
+      dynamic = "0";
+      playAmbient = "1";
+      meshCulling = "0";
+      originSort = "0";
+      useInstanceRenderData = "1";
+      instanceColor = "white";
+      instanceColor1 = "white";
+      instanceColor2 = "white";
+      collisionType = "Collision Mesh";
+      decalType = "Collision Mesh";
+      prebuildCollisionData = "0";
+      renderNormals = "0";
+      forceDetail = "-1";
+      position = "-385.357666 291.307404 104.571999";
+      scale = "1 1 1";
+      rotationMatrix = "-0.707106888 -0.707106769 0 0.707106769 -0.707106888 0 0 0 1";
+      isRenderEnabled = "false";
+      canSave = "1";
+      canSaveDynamicFields = "1";
+      persistentId = "68ad6e05-ac4b-4665-a9e2-e35c1c97ff5b";
+   };
+   new TSStatic(level_3_bounds_2) {
+      shapeName = "/levels/west_coast_usa/art/shapes/objects/constructionbarrier.dae";
+      dynamic = "0";
+      playAmbient = "1";
+      meshCulling = "0";
+      originSort = "0";
+      useInstanceRenderData = "1";
+      instanceColor = "white";
+      instanceColor1 = "white";
+      instanceColor2 = "white";
+      collisionType = "Collision Mesh";
+      decalType = "Collision Mesh";
+      prebuildCollisionData = "0";
+      renderNormals = "0";
+      forceDetail = "-1";
+      position = "-409.077637 315.027374 104.571999";
+      scale = "1 1 1";
+      rotationMatrix = "-0.707106888 -0.707106769 0 0.707106769 -0.707106888 0 0 0 1";
+      isRenderEnabled = "false";
+      canSave = "1";
+      canSaveDynamicFields = "1";
+      persistentId = "1f835859-cd98-4a70-904f-c08b58c51481";
+   };
+   new TSStatic(level_3_bounds_3) {
+      shapeName = "/levels/west_coast_usa/art/shapes/objects/constructionbarrier.dae";
+      dynamic = "0";
+      playAmbient = "1";
+      meshCulling = "0";
+      originSort = "0";
+      useInstanceRenderData = "1";
+      instanceColor = "white";
+      instanceColor1 = "white";
+      instanceColor2 = "white";
+      collisionType = "Collision Mesh";
+      decalType = "Collision Mesh";
+      prebuildCollisionData = "0";
+      renderNormals = "0";
+      forceDetail = "-1";
+      position = "-443.137909 280.967102 104.571999";
+      scale = "1 1 1";
+      rotationMatrix = "-0.707106888 -0.707106769 0 0.707106769 -0.707106888 0 0 0 1";
+      isRenderEnabled = "false";
+      canSave = "1";
+      canSaveDynamicFields = "1";
+      persistentId = "28b52c1a-03ee-494e-9ae1-a82214149146";
+   };
+   new TSStatic(level_3_collision_1) {
+      shapeName = "/levels/west_coast_usa/art/shapes/objects/constructionbarrier.dae";
+      dynamic = "0";
+      playAmbient = "1";
+      meshCulling = "0";
+      originSort = "0";
+      useInstanceRenderData = "1";
+      instanceColor = "white";
+      instanceColor1 = "white";
+      instanceColor2 = "white";
+      collisionType = "Collision Mesh";
+      decalType = "Collision Mesh";
+      prebuildCollisionData = "0";
+      renderNormals = "0";
+      forceDetail = "-1";
+      position = "-406.206726 294.56778 104.571999";
+      scale = "0.883921266 0.809412599 1";
+      rotationMatrix = "-0.707106888 0.707106769 0 -0.707106769 -0.707106888 0 0 0 1";
+      isRenderEnabled = "false";
+      canSave = "1";
+      canSaveDynamicFields = "1";
+      persistentId = "088f31c5-92f1-46a3-b73c-fa36c6f28e91";
+   };
+   new TSStatic(level_3_collision_2) {
+      shapeName = "/levels/west_coast_usa/art/shapes/objects/constructionbarrier.dae";
+      dynamic = "0";
+      playAmbient = "1";
+      meshCulling = "0";
+      originSort = "0";
+      useInstanceRenderData = "1";
+      instanceColor = "white";
+      instanceColor1 = "white";
+      instanceColor2 = "white";
+      collisionType = "Collision Mesh";
+      decalType = "Collision Mesh";
+      prebuildCollisionData = "0";
+      renderNormals = "0";
+      forceDetail = "-1";
+      position = "-414.373138 286.401367 104.571999";
+      scale = "0.883921266 0.809412599 1";
+      rotationMatrix = "-0.707106888 0.707106769 0 -0.707106769 -0.707106888 0 0 0 1";
+      isRenderEnabled = "false";
+      canSave = "1";
+      canSaveDynamicFields = "1";
+      persistentId = "90e66e38-15c9-4c21-89a9-f5652ada955e";
    };
 };
 //--- OBJECT WRITE END ---
+
+
+
+

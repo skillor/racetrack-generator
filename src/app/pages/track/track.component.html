@@ -169,17 +169,25 @@
 
             <button class="btn" (click)="autoCollision()">Auto Collision</button>
 
-            <div class="overflow-x-auto">
-                <table class="table table-zebra table-compact w-full">
-                    <tbody>
-                        <tr *ngFor="let obj of prefab?.objects">
-                            <td><button class="btn" (click)="useAsStart(obj)">Start</button></td>
-                            <td><button class="btn" (click)="useAsEnd(obj)">End</button></td>
-                            <td><button class="btn" (click)="makeCollision(obj)">Collision</button></td>
-                            <td>{{ obj | json }}</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="collapse collapse-arrow border border-secondary rounded-box">
+                <input type="checkbox" class="peer" />
+                <div class="collapse-title">
+                    Objects
+                </div>
+                <div class="collapse-content">
+                    <div class="overflow-x-auto">
+                        <table class="table table-zebra table-compact w-full">
+                            <tbody>
+                                <tr *ngFor="let obj of prefab?.objects">
+                                    <td><button class="btn" (click)="useAsStart(obj)">Start</button></td>
+                                    <td><button class="btn" (click)="useAsEnd(obj)">End</button></td>
+                                    <td><button class="btn" (click)="makeCollision(obj)">Collision</button></td>
+                                    <td>{{ obj | json }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 
