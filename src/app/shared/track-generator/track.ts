@@ -125,16 +125,25 @@ export class Track {
         this.gates.splice(this.gates.length - n, n);
     }
 
+    drawBarrierLines(
+        context: any | null,
+        color: string = '#fff',
+        off: number = 0, n: number = -1
+    ) {
+        if (n < 0) n = this.gates.length;
+        const barriers = this.getBarrierLines(off, n);
+        for (let b of barriers.left.concat(barriers.right)) {
+            Track.drawLine(context, b, color);
+        }
+    }
+
     drawTrack(off: number = 0, n: number = -1): void {
         if (this.trackCanvasContext === null) return;
         this.trackCanvasContext.clearRect(0, 0, this.width, this.height);
 
         if (n < 0) n = this.gates.length;
 
-        const barriers = this.getBarrierLines(off, n);
-        for (let b of barriers.left.concat(barriers.right)) {
-            Track.drawLine(this.trackCanvasContext, b, '#fff');
-        }
+        this.drawBarrierLines(this.trackCanvasContext, '#fff', off, n);
 
         for (let i = off; i < n; i++) {
             Track.drawGate(this.trackCanvasContext, this.gates[i]);

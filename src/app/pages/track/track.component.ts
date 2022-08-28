@@ -126,14 +126,13 @@ export class TrackComponent {
         }
     }
 
-    exportCollisions(): void {
-        if (!this.levelComponents) return;
+    mergeCanvy(canvy: HTMLCanvasElement[]): HTMLCanvasElement {
         let width = 0;
         let height = 0;
 
-        for (let c of this.levelComponents) {
-            width += c.collisionCanvas!.width;
-            height = Math.max(height, c.collisionCanvas!.height);
+        for (let c of canvy) {
+            width += c.width;
+            height = Math.max(height, c.height);
         }
 
         const canvas = document.createElement('canvas');
@@ -142,15 +141,21 @@ export class TrackComponent {
 
         const ctx = canvas.getContext('2d');
         let x = 0;
-        for (let c of this.levelComponents) {
-            ctx!.putImageData(c.collisionCanvas!.getContext('2d')?.getImageData(0, 0, c.collisionCanvas!.width, c.collisionCanvas!.height)!, x, 0);
-            x += c.collisionCanvas!.width;
+        for (let c of canvy) {
+            ctx!.putImageData(c.getContext('2d')?.getImageData(0, 0, c.width, c.height)!, x, 0);
+            x += c.width;
         }
+        return canvas;
+    }
+
+    exportCollisions(): void {
+        if (!this.levelComponents) return;
+        const canvas = this.mergeCanvy(this.levelComponents.map((c) => c.collisionCanvas!));
 
         const a = document.createElement('a');
         const dt = canvas.toDataURL('image/png');
         a.href = dt.replace(/^data:image\/[^;]/, 'data:application/octet-stream');
-        a.download = 'track-' + new Date().toLocaleDateString('en-CA') + '.png';
+        a.download = 'collisions-' + new Date().toLocaleDateString('en-CA') + '.png';
         a.click();
     }
 
@@ -198,6 +203,21 @@ export class TrackComponent {
 
     private parsePrefab(content: string): void {
         this.prefab = Prefab.createByContent(content);
+    }
+
+    exportTrack(): void {
+        if (!this.levelComponents) return;
+        const canvas = this.mergeCanvy(this.levelComponents.map((c) => c.createTrackCanvas()));
+
+        const a = document.createElement('a');
+        const dt = canvas.toDataURL('image/png');
+        a.href = dt.replace(/^data:image\/[^;]/, 'data:application/octet-stream');
+        a.download = 'track-' + new Date().toLocaleDateString('en-CA') + '.png';
+        a.click();
+    }
+
+    importTrack(): void {
+
     }
 
     importPrefab(): void {

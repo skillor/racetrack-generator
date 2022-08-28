@@ -218,12 +218,6 @@ export class LevelComponent implements AfterViewInit {
         context.putImageData(data, 0, 0);
     }
 
-    private colorMatch(color1: Uint8ClampedArray, color2: Uint8ClampedArray): boolean {
-        return color1[0] == color2[0] &&
-            color1[1] == color2[1] &&
-            color1[2] == color2[2];
-    }
-
     track?: Track;
     setTrack(t: Track) {
         this.track = t;
@@ -251,7 +245,7 @@ export class LevelComponent implements AfterViewInit {
         for (let y = 0; y < height; y++) {
             collisions[y] = new Array<boolean>(+this.trackWidth);
             for (let x = 0; x < width; x++) {
-                collisions[y][x] = this.colorMatch(context.getImageData(x, y, 1, 1).data, match);
+                collisions[y][x] = TrackGenerator.colorMatch(context.getImageData(x, y, 1, 1).data, match);
             }
         }
 
@@ -307,5 +301,22 @@ export class LevelComponent implements AfterViewInit {
     changeDeleteBarriers() {
         this.getTrack().deletedBarriers = this.deleteBarriers.split(',').map((v) => +v);
         this.getTrack().drawTrack();
+    }
+
+    createTrackCanvas(): HTMLCanvasElement {
+        const canvas = document.createElement('canvas');
+        canvas.width = +this.trackWidth;
+        canvas.height = +this.trackHeight;
+
+        const ctx = canvas.getContext('2d');
+        ctx!.putImageData(this.collisionCanvas!.getContext('2d')!.getImageData(0, 0, +this.trackWidth, +this.trackWidth), 0, 0);
+        ctx!.fillStyle = '#0f0';
+        const startCenter = TrackGenerator.centerOfLine(JSON.parse(this.startGate));
+        ctx!.fillRect(startCenter[0], startCenter[1], 1, 1);
+        ctx!.fillStyle = '#f00';
+        const endCenter = TrackGenerator.centerOfLine(JSON.parse(this.endGate));
+        ctx!.fillRect(endCenter[0], endCenter[1], 1, 1);
+        this.getTrack().drawBarrierLines(ctx, '#ff0');
+        return canvas;
     }
 }
