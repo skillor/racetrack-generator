@@ -25,7 +25,7 @@ export class TrackGenerator {
         return this.pointEquals([line1[0][0], line1[0][1]], [line2[0][0], line2[0][1]]) && this.pointEquals([line1[1][0], line1[1][1]], [line2[1][0], line2[1][1]]);
     }
 
-    private gateCenterPos(gate: Line): Point {
+    private lineCenterPos(gate: Line): Point {
         return [
             gate[0][0] + (gate[1][0] - gate[0][0]) * 0.5,
             gate[0][1] + (gate[1][1] - gate[0][1]) * 0.5,
@@ -233,7 +233,7 @@ export class TrackGenerator {
     }
 
     private lineGetX(y: number, line: Line): number {
-        return 1 / this.lineGetM(line) * (y - line[0][1]) +  line[0][0];
+        return 1 / this.lineGetM(line) * (y - line[0][1]) + line[0][0];
     }
 
     private getLinesMeetY(y: number, lines: Line[]): number[] {
@@ -279,6 +279,7 @@ export class TrackGenerator {
             for (let i = 1; i < meetPoint.length; i += 2) {
                 const maxX = Math.ceil(meetPoint[i]);
                 for (let x = Math.floor(meetPoint[i - 1]); x < maxX; x++) {
+                    if (this.pointOutBounds([x, y])) return true;
                     if (this.track.collisions[y][x]) return true;
                 }
             }
@@ -286,10 +287,29 @@ export class TrackGenerator {
         return false;
     }
 
-    private hasPolyPolyCollision(lines1: Line[], lines2: Line[]): boolean {
-        const b1 = this.getLinesBounds(lines1);
-        const b2 = this.getLinesBounds(lines2);
-        return this.hasRectangleCollision(b1, b2);
+    getLinePixelCollisions(line: Line): Point[] {
+        const center = this.lineCenterPos(line);
+        // TODO: 0.1
+        const v = TrackGenerator.angleToVectorMultiplied(TrackGenerator.lineAngle(line), 1);
+        let pos = center;
+        const collisions: Point[] = [];
+        for (let d of [-1, 1]) {
+            while (true) {
+                const fpos: Point = [Math.floor(pos[0]), Math.floor(pos[1])];
+                if (this.pointOutBounds(fpos)) break;
+                try {
+                    if (this.track.collisions[fpos[1]][fpos[0]]) {
+                        collisions.push(pos);
+                        break;
+                    }
+                } catch {
+                    collisions.push(pos);
+                    break;
+                }
+                pos = [pos[0] + v[0] * d, pos[1] + v[1] * d];
+            }
+        }
+        return collisions;
     }
 
     track: Track;
@@ -342,32 +362,44 @@ export class TrackGenerator {
 
     private calcMaxGateHalfSize(pos: Point, angle: number): number {
         let line = TrackGenerator.pointToGate(pos, angle, this.track.width * this.track.height);
-        // let minPoint = pos;
         let minDistance = +this.settings.maxGateHalfSize;
         let collision;
 
         const gates = this.track.gates.concat(this.boundsLines());
 
+        const checkCollisions: Line[] = []
         for (let i = gates.length - 1; i > 1; i--) {
             for (let j of [0, 1] as (0 | 1)[]) {
-                collision = this.lineIntersectionPoint(
-                    [line[0], line[1]],
-                    [gates[i][j], gates[i - 1][j]],
-                );
-                if (collision !== null) {
-                    const distance = TrackGenerator.lineLength([collision, pos]);
-                    if (distance < 0 || distance < minDistance) {
-                        // minPoint = collision;
-                        minDistance = distance;
-                    }
+                checkCollisions.push([gates[i][j], gates[i - 1][j]]);
+            }
+        }
+
+        for (let c of checkCollisions) {
+            collision = this.lineIntersectionPoint(
+                line,
+                c,
+            );
+            if (collision !== null) {
+                const distance = TrackGenerator.lineLength([collision, pos]);
+                if (distance < 0) return 0;
+                if (distance < minDistance) {
+                    minDistance = distance;
                 }
             }
+        }
+
+        for (let c of this.getLinePixelCollisions(line)) {
+            const distance = TrackGenerator.lineLength([c, pos]);
+                if (distance < 0) return 0;
+                if (distance < minDistance) {
+                    minDistance = distance;
+                }
         }
 
         return minDistance;
     }
 
-    private predictDirections(startPos: Point, targetPos: Point, currentAngle: number): Point[] {
+    private predictDirections(startPos: Point, targetPos: Point, currentAngle: number): [Point, number, number][] {
 
         const targetAngle = TrackGenerator.lineAngle([startPos, targetPos]);
 
@@ -389,19 +421,21 @@ export class TrackGenerator {
             return Math.abs(TrackGenerator.normalizeAngle(targetAngle - b)) - Math.abs(TrackGenerator.normalizeAngle(targetAngle - a));
         });
 
-        const vectors: Point[] = [];
+        const res: [Point, number, number][] = [];
 
-        for (const angle of angles) {
-            vectors.push(
-                TrackGenerator.angleToVectorMultiplied(angle, +this.settings.gateDistance)
-            );
+        for (const newAngle of angles) {
+            const d = TrackGenerator.angleToVectorMultiplied(newAngle, +this.settings.gateDistance);
+
+            const newPos: Point = [Math.floor(startPos[0] + d[0]), Math.floor(startPos[1] + d[1])];
+
+            let size = Math.min(+this.settings.maxGateHalfSize, this.calcMaxGateHalfSize(newPos, newAngle) - 1);
+            if (+this.settings.minGateHalfSize >= 0 && size > +this.settings.minGateHalfSize) size = +this.settings.minGateHalfSize + (this.random() * (size - +this.settings.minGateHalfSize));
+            size = Math.max(+this.settings.minGateHalfSize, size);
+
+            res.push([newPos, newAngle, size]);
         }
 
-        return vectors;
-    }
-
-    private randomShuffle(a: Point[]): Point[] {
-        return a.sort(() => 0.5 - this.random());;
+        return res;
     }
 
     private pointAngleMatches(point1: Point, angle1: number, point2: Point, angle2: number): boolean {
@@ -431,7 +465,7 @@ export class TrackGenerator {
 
         const gates: [Line, Line[], number][] = [];
 
-        const endPos = this.gateCenterPos(this.endGate);
+        const endPos = this.lineCenterPos(this.endGate);
         const endAngle = TrackGenerator.gateAngle(this.endGate);
 
         const gridSize = this.posAngleToGrid([this.track.width, this.track.height], Math.PI);
@@ -463,7 +497,7 @@ export class TrackGenerator {
             const traversedGates = current[1];
             let prevCollisions = current[2];
 
-            const currentPos = this.gateCenterPos(currentGate);
+            const currentPos = this.lineCenterPos(currentGate);
             const currentAngle = TrackGenerator.gateAngle(currentGate);
 
             const currentGridPos = this.posAngleToGrid(currentPos, currentAngle);
@@ -486,24 +520,23 @@ export class TrackGenerator {
                 return [traversedGates, foundEnd, iterationCount];
             }
 
-            let diretions = this.predictDirections(currentPos, endPos, currentAngle);
+            let newGates = this.predictDirections(currentPos, endPos, currentAngle);
             switch (this.mode) {
                 case 'longest':
-                    diretions = diretions.reverse();
+                    newGates.reverse();
                     break;
                 case 'random':
-                    diretions = this.randomShuffle(diretions);
+                    newGates.sort(() => 0.5 - this.random());
+                    break;
+                case 'maxwidth':
+                    newGates.sort((a, b) => a[2] - b[2]);
                     break;
             }
 
-            for (let d of diretions) {
-                const newPos: Point = [Math.floor(currentPos[0] + d[0]), Math.floor(currentPos[1] + d[1])];
-
-                const newAngle = TrackGenerator.vectorAngle(d);
-
-                let size = Math.min(+this.settings.maxGateHalfSize, this.calcMaxGateHalfSize(newPos, newAngle));
-                if (size > +this.settings.minGateHalfSize) size = +this.settings.minGateHalfSize + (this.random() * (size - +this.settings.minGateHalfSize));
-                size = Math.max(+this.settings.minGateHalfSize, size);
+            for (let g of newGates) {
+                const newPos = g[0];
+                const newAngle = g[1];
+                const size = g[2];
 
                 const newGate = TrackGenerator.pointToGate(newPos, newAngle, size);
 

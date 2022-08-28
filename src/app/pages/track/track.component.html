@@ -13,6 +13,8 @@
                 class="btn">Random</button>
             <button [class.btn-active]="generatorMode == 'longest'" (click)="generatorMode = 'longest'"
                 class="btn">Longest</button>
+            <button [class.btn-active]="generatorMode == 'maxwidth'" (click)="generatorMode = 'maxwidth'"
+                class="btn">Width</button>
         </div>
         <button class="btn" (click)="generateTracks()">Generate</button>
         <div class="flex flex-col">
