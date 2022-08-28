@@ -316,7 +316,7 @@ export class LevelComponent implements AfterViewInit {
         ctx!.fillStyle = '#f00';
         const endCenter = TrackGenerator.centerOfLine(JSON.parse(this.endGate));
         ctx!.fillRect(endCenter[0], endCenter[1], 1, 1);
-        this.getTrack().drawBarrierLines(ctx, '#ff0');
+        this.getTrack()?.drawBarrierLines(ctx, '#ff0');
         return canvas;
     }
 }
