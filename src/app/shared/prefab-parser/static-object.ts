@@ -26,6 +26,20 @@ export class StaticObject extends PrefabObject {
             size: [0.55, 1.9, 0.9],
             adjustSizeIndex: [1],
         },
+        '/levels/west_coast_usa/art/shapes/buildings/buildingblock_concrete.dae': {
+            label: 'buildingblock_concrete',
+            shapeName: '/levels/west_coast_usa/art/shapes/buildings/buildingblock_concrete.dae',
+            angleOffset: 0,
+            size: [4, 1, 2],
+            adjustSizeIndex: [0],
+        },
+        '/levels/west_coast_usa/art/shapes/race/concrete_road_barrier_a.dae': {
+            label: 'concrete_road_barrier_a',
+            shapeName: '/levels/west_coast_usa/art/shapes/race/concrete_road_barrier_a.dae',
+            angleOffset: 0,
+            size: [3, 0.8, 1.1],
+            adjustSizeIndex: [0],
+        },
     };
 
     shapeName?: string;

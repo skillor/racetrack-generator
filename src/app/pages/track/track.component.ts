@@ -38,6 +38,11 @@ export class TrackComponent {
     amountTracks = 5;
     trackName: string;
     modIncludeTracks: string;
+    exportObjectType: string = this.objectValues()[0].shapeName;
+
+    exportTranslateX: string = '0';
+    exportTranslateY: string = '0';
+    exportTranslateZ: string = '0';
 
     prefab?: Prefab = undefined;
 
@@ -240,7 +245,7 @@ export class TrackComponent {
         });
     }
 
-    objectTypes(): StaticObjectType[] {
+    objectValues(): StaticObjectType[] {
         return Object.values(StaticObject.shapeTypes);
     }
 
@@ -248,8 +253,16 @@ export class TrackComponent {
         return Object.fromEntries(this.levelComponents!.map((o) => [o.levelKey, o.track!]));
     }
 
-    exportPrefab(obj: StaticObjectType): void {
-        const prefab = Prefab.createByTracks(this.getTracks(), +this.prefabScale, obj, this.prefab);
+    private createPrefab(): Prefab {
+        const type = StaticObject.shapeTypes[this.exportObjectType];
+        const prefab = Prefab.createByTracks(this.getTracks(), +this.prefabScale, type, this.prefab);
+        prefab.translate([+this.exportTranslateX, +this.exportTranslateY, +this.exportTranslateZ]);
+        prefab.stringify();
+        return prefab;
+    }
+
+    exportPrefab(): void {
+        const prefab = this.createPrefab();
         const blob = new Blob([prefab.content], {
             type: 'text/plain',
         });
@@ -265,9 +278,8 @@ export class TrackComponent {
         return objects.map((o: any) => JSON.stringify(o)).join('\n');
     }
 
-    exportMod(obj: StaticObjectType): void {
-        const prefab = Prefab.createByTracks(this.getTracks(), +this.prefabScale, obj, this.prefab);
-
+    exportMod(): void {
+        const prefab = this.createPrefab();
         const zipped = fflate.zipSync({
             ['levels/' + this.levelName + '/main/items.level.json']:
                 fflate.strToU8(this.jsonLines(

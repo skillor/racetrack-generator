@@ -59,13 +59,7 @@ export class HomeComponent {
     translate(factor = 1): void {
         if (!this.prefab) return;
 
-        for (let level of Object.values(this.prefab.levels)) {
-            for (let obj of level.objects) {
-                obj.pos![0] += +this.translateX * factor;
-                obj.pos![1] += +this.translateY * factor;
-                obj.pos![2] += +this.translateZ * factor;
-            }
-        }
+        this.prefab.translate([+this.translateX * factor, +this.translateY * factor, +this.translateZ * factor]);
 
         this.prefab.stringify();
     }

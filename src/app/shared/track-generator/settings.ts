@@ -1,5 +1,5 @@
 export class Settings {
-    minSegments: number = 50;
+    minSegments: number = 5;
     maxSegments: number = 100000;
     xComputeFactor: number = 0.5;
     yComputeFactor: number = 0.5;

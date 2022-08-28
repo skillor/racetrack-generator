@@ -29,20 +29,23 @@
             </div>
             <div class="collapse-content">
                 <div>
-                    <button *ngFor="let level of prefab?.levels | keyvalue" class="btn" (click)="loadLevelSettings(level.key)">Load Level {{level.key}}</button>
+                    <button *ngFor="let level of prefab?.levels | keyvalue" class="btn"
+                        (click)="loadLevelSettings(level.key)">Load Level {{level.key}}</button>
                 </div>
                 <div class="flex flex-wrap" *ngIf="settings">
                     <div class="form-control w-full max-w-xs">
                         <label class="label">
                             <span class="label-text">Start</span>
                         </label>
-                        <input [(ngModel)]="startGate" type="text" placeholder="" class="input input-bordered w-full max-w-xs" />
+                        <input [(ngModel)]="startGate" type="text" placeholder=""
+                            class="input input-bordered w-full max-w-xs" />
                     </div>
                     <div class="form-control w-full max-w-xs">
                         <label class="label">
                             <span class="label-text">End</span>
                         </label>
-                        <input [(ngModel)]="endGate" type="text" placeholder="" class="input input-bordered w-full max-w-xs" />
+                        <input [(ngModel)]="endGate" type="text" placeholder=""
+                            class="input input-bordered w-full max-w-xs" />
                     </div>
                     <div *ngFor="let prop of settings.getPropertyNames()" class="form-control max-w-xs">
                         <label class="label">
@@ -57,24 +60,17 @@
                     </div>
                 </div>
                 <div>
-                    <button *ngFor="let level of prefab?.levels | keyvalue" class="btn" (click)="saveLevelSettings(level.key)">Save Level {{level.key}}</button>
+                    <button *ngFor="let level of prefab?.levels | keyvalue" class="btn"
+                        (click)="saveLevelSettings(level.key)">Save Level {{level.key}}</button>
                     <button class="btn" (click)="saveAllSettings()">Save All</button>
                 </div>
             </div>
         </div>
     </div>
     <div class="flex flex-row">
-        <app-level *ngFor="let level of prefab?.levels | keyvalue"
-            [levelKey]="level.key"
-            [levelValue]="level.value"
-            [defaultGeneratorMode]="generatorMode"
-            [drawColor]="drawColor"
-            [inputSeed]="outputSeed"
-            [strokeSize]="strokeSize"
-            [prefab]="prefab"
-            [prefabScale]="+prefabScale"
-            #level
-        ></app-level>
+        <app-level *ngFor="let level of prefab?.levels | keyvalue" [levelKey]="level.key" [levelValue]="level.value"
+            [defaultGeneratorMode]="generatorMode" [drawColor]="drawColor" [inputSeed]="outputSeed"
+            [strokeSize]="strokeSize" [prefab]="prefab" [prefabScale]="+prefabScale" #level></app-level>
     </div>
     <div class="flex flex-wrap">
         <div class="btn-group btn-group-vertical">
@@ -87,8 +83,7 @@
             <label class="label">
                 <span class="label-text">Brush Size</span>
             </label>
-            <input [(ngModel)]="strokeSize" type="number" placeholder=""
-                class="input input-bordered w-full max-w-xs" />
+            <input [(ngModel)]="strokeSize" type="number" placeholder="" class="input input-bordered w-full max-w-xs" />
         </div>
     </div>
     <div>
@@ -106,52 +101,91 @@
                 <div class="h-auto w-1 bg-neutral-focus"></div>
                 <div class="dropdown">
                     <label tabindex="0" class="btn rounded-l-none ml-0 mr-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="w-5 h-5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                         </svg>
                     </label>
                     <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
-                      <li *ngFor="let name of prefabNames"><button class="btn" (click)="loadPrefab(name)">{{name}}</button></li>
+                        <li *ngFor="let name of prefabNames"><button class="btn"
+                                (click)="loadPrefab(name)">{{name}}</button></li>
                     </ul>
-                  </div>
-            </div>
-
-            <div class="dropdown">
-                <label tabindex="0" class="btn m-1">Export Prefab</label>
-                <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box">
-                    <li *ngFor="let obj of objectTypes()"><button class="btn" (click)="exportPrefab(obj)">{{obj.label}}</button></li>
-                </ul>
-            </div>
-
-            <div class="form-control w-full max-w-xs">
-                <label class="label">
-                    <span class="label-text">Level Name</span>
-                </label>
-                <input [(ngModel)]="levelName" type="text" placeholder="west_coast_usa" class="input input-bordered w-full max-w-xs" />
-            </div>
-
-            <div class="form-control w-full max-w-xs">
-                <label class="label">
-                    <span class="label-text">Track Name</span>
-                </label>
-                <input [(ngModel)]="trackName" type="text" placeholder="racetrack_1" class="input input-bordered w-full max-w-xs" />
-            </div>
-
-            <div class="dropdown">
-                <label tabindex="0" class="btn m-1">Include Tracks</label>
-                <div tabindex="0" class="compact dropdown-content shadow bg-base-100 rounded-box w-64">
-                    <textarea [(ngModel)]="modIncludeTracks" class="textarea textarea-primary w-full" placeholder="racetrack_1"></textarea>
                 </div>
-              </div>
-
-            <div class="dropdown">
-                <label tabindex="0" class="btn m-1">Export Mod</label>
-                <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box">
-                    <li *ngFor="let obj of objectTypes()"><button class="btn" (click)="exportMod(obj)">{{obj.label}}</button></li>
-                </ul>
             </div>
 
-            <!-- <button class="btn" (click)="autoCollision()">Auto Collision</button> -->
+            <div class="collapse collapse-arrow border border-secondary rounded-box">
+                <input type="checkbox" class="peer" />
+                <div class="collapse-title">
+                    Export Settings
+                </div>
+                <div class="collapse-content">
+                    <div class="form-control w-full max-w-xs">
+                        <label class="label">
+                            <span class="label-text">Level Name</span>
+                        </label>
+                        <input [(ngModel)]="levelName" type="text" placeholder="west_coast_usa"
+                            class="input input-bordered w-full max-w-xs" />
+                    </div>
+                    <div class="form-control w-full max-w-xs">
+                        <label class="label">
+                            <span class="label-text">Track Name</span>
+                        </label>
+                        <input [(ngModel)]="trackName" type="text" placeholder="racetrack_1"
+                            class="input input-bordered w-full max-w-xs" />
+                    </div>
+
+                    <div class="dropdown">
+                        <label tabindex="0" class="btn m-1">
+                            Include Tracks
+                            <svg class="ml-2 w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                        </label>
+                        <div tabindex="0" class="compact dropdown-content shadow bg-base-100 rounded-box w-64">
+                            <textarea [(ngModel)]="modIncludeTracks" class="textarea textarea-primary w-full"
+                                placeholder="racetrack_1"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-control w-full max-w-xs">
+                        <label class="label">
+                            <span class="label-text">Object Type</span>
+                        </label>
+                        <select class="select select-bordered" [(ngModel)]="exportObjectType">
+                            <option *ngFor="let obj of objectValues()" [value]="obj.shapeName">{{obj.label}}</option>
+                        </select>
+                    </div>
+
+                    <div class="flex flex-row">
+                        Translate:
+                        <div class="form-control w-full max-w-xs">
+                            <label class="label">
+                                <span class="label-text">X</span>
+                            </label>
+                            <input [(ngModel)]="exportTranslateX" type="number" placeholder=""
+                                class="input input-bordered w-full max-w-xs" />
+                        </div>
+                        <div class="form-control w-full max-w-xs">
+                            <label class="label">
+                                <span class="label-text">Y</span>
+                            </label>
+                            <input [(ngModel)]="exportTranslateY" type="number" placeholder=""
+                                class="input input-bordered w-full max-w-xs" />
+                        </div>
+                        <div class="form-control w-full max-w-xs">
+                            <label class="label">
+                                <span class="label-text">Z</span>
+                            </label>
+                            <input [(ngModel)]="exportTranslateZ" type="number" placeholder=""
+                                class="input input-bordered w-full max-w-xs" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn" (click)="exportPrefab()">Export Prefab</button>
+            <button class="btn" (click)="exportMod()">Export Mod</button>
 
             <div class="collapse collapse-arrow border border-secondary rounded-box">
                 <input type="checkbox" class="peer" />

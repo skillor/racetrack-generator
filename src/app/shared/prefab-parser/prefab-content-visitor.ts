@@ -75,7 +75,7 @@ export class PrefabVisitor implements Visitor {
         this.writeLine('instanceColor = "white";');
         this.writeLine('instanceColor1 = "white";');
         this.writeLine('instanceColor2 = "white";');
-        this.writeLine('collisionType = "Collision Mesh";');
+        this.writeLine('collisionType = "Visible Mesh Final";');
         this.writeLine('decalType = "Collision Mesh";');
         this.writeLine('prebuildCollisionData = "0";');
         this.writeLine('renderNormals = "0";');

@@ -110,6 +110,16 @@ export class Prefab {
         return v.get();
     }
 
+    translate(translate: number[]) {
+        for (let level of Object.values(this.levels)) {
+            for (let obj of level.objects) {
+                for (let i = 0; i < translate.length; i++) {
+                    obj.pos![i] += translate[i];
+                }
+            }
+        }
+    }
+
     private parse() {
         try {
             this.levels = {};
