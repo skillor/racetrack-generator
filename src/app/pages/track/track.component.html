@@ -2,19 +2,6 @@
     <div class="flex flex-row">
         <div class="form-control w-full max-w-xs">
             <label class="label">
-                <span class="label-text">Width</span>
-            </label>
-            <input [(ngModel)]="trackWidth" type="number" placeholder="" class="input input-bordered w-full max-w-xs" />
-        </div>
-        <div class="form-control w-full max-w-xs">
-            <label class="label">
-                <span class="label-text">Height</span>
-            </label>
-            <input [(ngModel)]="trackHeight" type="number" placeholder=""
-                class="input input-bordered w-full max-w-xs" />
-        </div>
-        <div class="form-control w-full max-w-xs">
-            <label class="label">
                 <span class="label-text">Seed</span>
             </label>
             <input [(ngModel)]="inputSeed" type="text" placeholder="" class="input input-bordered w-full max-w-xs" />
@@ -27,29 +14,11 @@
             <button [class.btn-active]="generatorMode == 'longest'" (click)="generatorMode = 'longest'"
                 class="btn">Longest</button>
         </div>
-        <button class="btn" (click)="generateTrack()">Generate</button>
-        <div class="flex flex-col">
-            <button class="btn" (click)="addSegments()">Add Segments</button>
-            <button class="btn" (click)="deleteSegments()">Del Segments</button>
-        </div>
+        <button class="btn" (click)="generateTracks()">Generate</button>
         <div class="flex flex-col">
             <div>Time: {{ generationTime }} ms</div>
             <div>Iterations: {{ generationIterations }}</div>
             <div>Seed: {{ outputSeed }}</div>
-        </div>
-    </div>
-    <div class="flex">
-        <div class="form-control w-full max-w-xs">
-            <label class="label">
-                <span class="label-text">Start</span>
-            </label>
-            <input [(ngModel)]="startGate" type="text" placeholder="" class="input input-bordered w-full max-w-xs" />
-        </div>
-        <div class="form-control w-full max-w-xs">
-            <label class="label">
-                <span class="label-text">End</span>
-            </label>
-            <input [(ngModel)]="endGate" type="text" placeholder="" class="input input-bordered w-full max-w-xs" />
         </div>
     </div>
     <div class="flex">
@@ -59,7 +28,22 @@
                 Settings
             </div>
             <div class="collapse-content">
-                <div class="flex flex-wrap">
+                <div>
+                    <button *ngFor="let level of prefab?.levels | keyvalue" class="btn" (click)="loadLevelSettings(level.key)">Load Level {{level.key}}</button>
+                </div>
+                <div class="flex flex-wrap" *ngIf="settings">
+                    <div class="form-control w-full max-w-xs">
+                        <label class="label">
+                            <span class="label-text">Start</span>
+                        </label>
+                        <input [(ngModel)]="startGate" type="text" placeholder="" class="input input-bordered w-full max-w-xs" />
+                    </div>
+                    <div class="form-control w-full max-w-xs">
+                        <label class="label">
+                            <span class="label-text">End</span>
+                        </label>
+                        <input [(ngModel)]="endGate" type="text" placeholder="" class="input input-bordered w-full max-w-xs" />
+                    </div>
                     <div *ngFor="let prop of settings.getPropertyNames()" class="form-control max-w-xs">
                         <label class="label">
                             <span class="label-text">{{prop}}</span>
@@ -72,42 +56,42 @@
                         </ng-container>
                     </div>
                 </div>
-
+                <div>
+                    <button *ngFor="let level of prefab?.levels | keyvalue" class="btn" (click)="saveLevelSettings(level.key)">Save Level {{level.key}}</button>
+                    <button class="btn" (click)="saveAllSettings()">Save All</button>
+                </div>
             </div>
         </div>
     </div>
+    <div class="flex flex-row">
+        <app-level *ngFor="let level of prefab?.levels | keyvalue"
+            [levelKey]="level.key"
+            [levelValue]="level.value"
+            [defaultGeneratorMode]="generatorMode"
+            [drawColor]="drawColor"
+            [inputSeed]="outputSeed"
+            [strokeSize]="strokeSize"
+            [prefab]="prefab"
+            [prefabScale]="+prefabScale"
+            #level
+        ></app-level>
+    </div>
+    <div class="flex flex-wrap">
+        <div class="btn-group btn-group-vertical">
+            <button [class.btn-active]="drawColor == '#fff'" (click)="drawColor = '#fff'" class="btn">+</button>
+            <button [class.btn-active]="drawColor == '#000'" (click)="drawColor = '#000'" class="btn">-</button>
+        </div>
+        <button class="btn" (click)="importCollisions()">Import Image</button>
+        <button class="btn" (click)="exportCollisions()">Export Image</button>
+        <div class="form-control w-full max-w-xs">
+            <label class="label">
+                <span class="label-text">Brush Size</span>
+            </label>
+            <input [(ngModel)]="strokeSize" type="number" placeholder=""
+                class="input input-bordered w-full max-w-xs" />
+        </div>
+    </div>
     <div>
-        <div>
-            <h4>Collisions</h4>
-            <canvas class="border" #collisionCanvas></canvas>
-            <div class="flex flex-wrap">
-                <div class="btn-group btn-group-vertical">
-                    <button [class.btn-active]="drawColor == '#fff'" (click)="drawColor = '#fff'" class="btn">+</button>
-                    <button [class.btn-active]="drawColor == '#000'" (click)="drawColor = '#000'" class="btn">-</button>
-                </div>
-                <button class="btn" (click)="importCollisions()">Import Image</button>
-                <button class="btn" (click)="exportCollisions()">Export Image</button>
-                <button class="btn" (click)="clearCollisions()">Clear</button>
-                <div class="form-control w-full max-w-xs">
-                    <label class="label">
-                        <span class="label-text">Brush Size</span>
-                    </label>
-                    <input [(ngModel)]="strokeSize" type="number" placeholder=""
-                        class="input input-bordered w-full max-w-xs" />
-                </div>
-            </div>
-        </div>
-        <div>
-            <h4>Track</h4>
-            <div class="form-control w-full max-w-xs">
-                <label class="label">
-                    <span class="label-text">Delete Barriers</span>
-                </label>
-                <input [(ngModel)]="deleteBarriers" (ngModelChange)="changeDeleteBarriers()" type="text" placeholder="0,1" class="input input-bordered w-full max-w-xs" />
-            </div>
-            <canvas class="border" #trackCanvas></canvas>
-        </div>
-
         <div>
             <div class="form-control w-full max-w-xs">
                 <label class="label">
@@ -167,7 +151,7 @@
                 </ul>
             </div>
 
-            <button class="btn" (click)="autoCollision()">Auto Collision</button>
+            <!-- <button class="btn" (click)="autoCollision()">Auto Collision</button> -->
 
             <div class="collapse collapse-arrow border border-secondary rounded-box">
                 <input type="checkbox" class="peer" />
@@ -178,22 +162,18 @@
                     <div class="overflow-x-auto">
                         <table class="table table-zebra table-compact w-full">
                             <tbody>
-                                <tr *ngFor="let obj of prefab?.objects">
-                                    <td><button class="btn" (click)="useAsStart(obj)">Start</button></td>
-                                    <td><button class="btn" (click)="useAsEnd(obj)">End</button></td>
-                                    <td><button class="btn" (click)="makeCollision(obj)">Collision</button></td>
-                                    <td>{{ obj | json }}</td>
-                                </tr>
+                                <ng-container *ngFor="let level of prefab?.levels | keyvalue">
+                                    <tr>{{level.key}}</tr>
+                                    <tr *ngFor="let obj of level.value.objects">
+                                        <td>{{ obj | json }}</td>
+                                    </tr>
+                                </ng-container>
+
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div>
-            <h4>Debug</h4>
-            <canvas class="border" #debugCanvas></canvas>
         </div>
     </div>
 </div>

@@ -1,0 +1,24 @@
+<div>
+    <h4>Level {{levelKey}}</h4>
+    <div class="form-control w-full max-w-xs">
+        <label class="label">
+            <span class="label-text">Delete Barriers</span>
+        </label>
+        <input [(ngModel)]="deleteBarriers" (ngModelChange)="changeDeleteBarriers()" type="text" placeholder="0,1" class="input input-bordered w-full max-w-xs" />
+    </div>
+    <canvas class="border" #trackCanvas></canvas>
+    <canvas class="border" #collisionCanvas></canvas>
+</div>
+<!-- <div class="form-control w-full max-w-xs">
+    <label class="label">
+        <span class="label-text">Width</span>
+    </label>
+    <input [(ngModel)]="trackWidth" type="number" placeholder="" class="input input-bordered w-full max-w-xs" />
+</div>
+<div class="form-control w-full max-w-xs">
+    <label class="label">
+        <span class="label-text">Height</span>
+    </label>
+    <input [(ngModel)]="trackHeight" type="number" placeholder=""
+        class="input input-bordered w-full max-w-xs" />
+</div> -->

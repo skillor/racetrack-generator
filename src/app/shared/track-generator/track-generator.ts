@@ -307,7 +307,6 @@ export class TrackGenerator {
         this.mode = mode;
         this.settings = settings;
 
-        if (seed === '') seed = ('' + Math.random()).substring(2);
         this.seed = seed;
         this.random = seedrandom(seed);
     }

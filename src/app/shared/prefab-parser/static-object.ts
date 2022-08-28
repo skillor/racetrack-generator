@@ -2,7 +2,7 @@ import { Line } from "../track-generator/line";
 import { Point } from "../track-generator/point";
 import { TrackGenerator } from "../track-generator/track-generator";
 import { Visitor } from "./object-visitor";
-import { Prefab } from "./prefab";
+import { Level } from "./prefab";
 import { PrefabObject } from "./prefab-object";
 import * as THREE from "./three-math";
 
@@ -54,18 +54,18 @@ export class StaticObject extends PrefabObject {
         }
     }
 
-    get2DBox(scale: number = 1, prefab: Prefab | undefined): Point[] {
+    get2DBox(scale: number = 1, level: Level | undefined = undefined): Point[] {
         let min = [0, 0];
-        if (prefab !== undefined) {
-            min[0] = prefab.minPos[0];
-            min[1] = prefab.minPos[1];
+        if (level !== undefined) {
+            min[0] = level.minPos[0];
+            min[1] = level.minPos[1];
         }
         if (this.shapeType === undefined) return [];
         const center: Point = [this.pos![0], this.pos![1]];
         const size: Point = [this.shapeType.size[0] * this.scale[0] * 0.5, this.shapeType.size[1] * this.scale[1] * 0.5];
         const points = TrackGenerator.rotatedRect(center, size, -this.rot![2]);
         for (let i = 0; i < points.length; i++) {
-            points[i] = PrefabObject.pointFromPrefab(points[i], scale, prefab);
+            points[i] = PrefabObject.pointFromLevel(points[i], scale, level);
         }
         return points;
     }
