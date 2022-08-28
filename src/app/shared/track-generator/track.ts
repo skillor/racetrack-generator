@@ -94,12 +94,15 @@ export class Track {
         return new Track(obj.width, obj.height, obj.collisions, null, null, obj.gates, obj.deletedBarriers);
     }
 
-    getBarrierLines(off: number = 0, n: number = -1): Line[] {
+    getBarrierLines(off: number = 0, n: number = -1): {left: Line[], right: Line[]} {
         if (n < 0) n = this.gates.length;
-        const lines: Line[] = [];
+        const left: Line[] = [];
+        const right: Line[] = [];
         for (let i = n - 1; i > off + 1; i--) {
             for (let j of [0, 1] as (0 | 1)[]) {
                 if (!this.deletedBarriers.includes((i - 1) * 2 + j)) {
+                    let lines = left;
+                    if (j == 1) lines = right;
                     lines.push([
                         this.gates[i][j],
                         this.gates[i - 1][j],
@@ -107,7 +110,7 @@ export class Track {
                 }
             }
         }
-        return lines;
+        return {left, right};
     }
 
     firstGate(): Line {
@@ -128,7 +131,8 @@ export class Track {
 
         if (n < 0) n = this.gates.length;
 
-        for (let b of this.getBarrierLines(off, n)) {
+        const barriers = this.getBarrierLines(off, n);
+        for (let b of barriers.left.concat(barriers.right)) {
             Track.drawLine(this.trackCanvasContext, b, '#fff');
         }
 

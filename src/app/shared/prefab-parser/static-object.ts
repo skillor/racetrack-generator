@@ -2,16 +2,16 @@ import { Line } from "../track-generator/line";
 import { Point } from "../track-generator/point";
 import { TrackGenerator } from "../track-generator/track-generator";
 import { Visitor } from "./object-visitor";
-import { Level } from "./prefab";
+import { Level, Prefab } from "./prefab";
 import { PrefabObject } from "./prefab-object";
-import * as THREE from "./three-math";
+import * as THREE from 'three';
 
 export type StaticObjectType = {
     label: string,
     shapeName: string,
     angleOffset: number,
     size: number[],
-    adjustSizeIndex: number[],
+    adjustSize: number[],
 };
 
 export class StaticObject extends PrefabObject {
@@ -24,21 +24,21 @@ export class StaticObject extends PrefabObject {
             shapeName: '/levels/west_coast_usa/art/shapes/objects/constructionbarrier.dae',
             angleOffset: Math.PI * 0.5,
             size: [0.55, 1.9, 0.9],
-            adjustSizeIndex: [1],
+            adjustSize: [0, 1, 0],
         },
         '/levels/west_coast_usa/art/shapes/buildings/buildingblock_concrete.dae': {
             label: 'buildingblock_concrete',
             shapeName: '/levels/west_coast_usa/art/shapes/buildings/buildingblock_concrete.dae',
             angleOffset: 0,
             size: [4, 1, 2],
-            adjustSizeIndex: [0],
+            adjustSize: [1, 0, 0],
         },
         '/levels/west_coast_usa/art/shapes/race/concrete_road_barrier_a.dae': {
             label: 'concrete_road_barrier_a',
             shapeName: '/levels/west_coast_usa/art/shapes/race/concrete_road_barrier_a.dae',
             angleOffset: 0,
             size: [3, 0.8, 1.1],
-            adjustSizeIndex: [0],
+            adjustSize: [1, 0, 0],
         },
     };
 
@@ -79,76 +79,76 @@ export class StaticObject extends PrefabObject {
         const size: Point = [this.shapeType.size[0] * this.scale[0] * 0.5, this.shapeType.size[1] * this.scale[1] * 0.5];
         const points = TrackGenerator.rotatedRect(center, size, -this.rot![2]);
         for (let i = 0; i < points.length; i++) {
-            points[i] = PrefabObject.pointFromLevel(points[i], scale, level);
+            points[i] = PrefabObject.pointFromPrefabToLevel(points[i], scale, level);
         }
         return points;
     }
 
-    static createByLineAndType(line: Line, type: StaticObjectType, referencePoints: number[][]): StaticObject {
-        const p = new StaticObject();
+    static createByLineAndType(
+        line: Line,
+        type: StaticObjectType,
+        mesh: THREE.Mesh | null = null,
+        side: ('left' | 'right'),
+        repeatObject: boolean = false,
+        scaleObject: number[] = [1, 1, 1],
+    ): StaticObject[] {
         const dist = TrackGenerator.lineLength(line);
         const center = TrackGenerator.centerOfLine(line);
         const angle = TrackGenerator.normalizeAngle(TrackGenerator.lineAngle(line));
+        let quaternion = new THREE.Quaternion();
+        quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -angle-type.angleOffset);
 
+        const objs = [];
+
+        const p = new StaticObject();
+
+        p.rot = [0, 0, 0];
         p.pos = [center[0], center[1], 0];
 
-        const closest = referencePoints.sort((a, b) => {
-            return TrackGenerator.lineLengthUnnormed([[a[0], a[1]], center]) < TrackGenerator.lineLengthUnnormed([[b[0], b[1]], center]) ? -1 : 1;
-        });
-
-        if (closest.length < 3) {
-            p.pos[2] = closest[0][2];
-        } else {
-
-            let points = [closest[0], closest[1], closest[2]];
-
-            let off = 3;
-            while (true) {
-                const startOff = off;
-                if (points[0][0] == points[1][0] && points[0][0] == points[2][0] ||
-                    points[0][1] == points[1][1] && points[0][1] == points[2][1]) {
-                    points[2] = closest[off];
-                    off++;
-                }
-                if (off > closest.length - 1) break;
-                if (TrackGenerator.pointEquals(points[0], points[1]) || TrackGenerator.pointEquals(points[1], points[2])) {
-                    points[1] = closest[off]
-                    off++;
-                }
-                if (off > closest.length - 1) break;
-                if (TrackGenerator.pointEquals(points[0], points[2])) {
-                    points[2] = closest[off];
-                    off++;
-                }
-                if (startOff == off) break;
-                if (off > closest.length - 1) break;
-            }
-
-            points = points.map((v) => new THREE.Vector3(v[0], v[1], v[2]));
-            const plane = new THREE.Plane();
-            plane.setFromCoplanarPoints(points[0], points[1], points[2]);
-
-            const ray = new THREE.Ray(new THREE.Vector3(p.pos[0], p.pos[1], 0), new THREE.Vector3(0, 0, 1));
-
-            if (ray.intersectPlane(plane) === null) {
-                console.log(ray);
-                console.log(plane);
-                console.log(points);
-            }
-
-            p.pos[2] = ray.intersectPlane(plane).z;
-            if (p.pos[2] == 0) {
-                console.log(ray);
-                console.log(plane);
-                console.log(points);
-            }
+        for (let i = 0; i < p.scale.length; i++) {
+            p.scale[i] = scaleObject[i] + type.adjustSize[i] * ((dist / type.size[i]) - scaleObject[i]);
         }
 
-        p.rot = [0, 0, - angle - type.angleOffset];
+        if (mesh) {
+            const meshCenter = new THREE.Vector3();
+            mesh.geometry.boundingBox!.getCenter(meshCenter);
 
-        for (let i of type.adjustSizeIndex) {
-            p.scale[i] = dist / type.size[i];
+            const targetAngle = TrackGenerator.lineAngle([
+                center,
+                [meshCenter.x, meshCenter.y],
+            ])
+
+            let off = 0;
+            let collisionResults: THREE.Intersection[] = [];
+            while (collisionResults.length == 0) {
+                const offV = TrackGenerator.angleToVectorMultiplied(targetAngle, off);
+                off += Prefab.MIN_EPS;
+                const ray = new THREE.Raycaster(new THREE.Vector3(p.pos[0] + offV[0], p.pos[1] + offV[1], 0), new THREE.Vector3(0, 0, 1));
+                collisionResults = ray.intersectObject(mesh);
+            }
+            const collision = collisionResults[0];
+
+            p.pos[2] = collision.point.z;
+
+            const quat = new THREE.Quaternion();
+            quat.setFromUnitVectors(collision.face!.normal, new THREE.Vector3(0, 0, -1));
+
+            quaternion = quat.multiply(quaternion);
         }
+
+        const euler = new THREE.Euler();
+        euler.setFromQuaternion(quaternion);
+
+        p.rot[0] = euler.x;
+        p.rot[1] = euler.y;
+        p.rot[2] = euler.z;
+
+        let off: Point = [Prefab.MIN_EPS, Prefab.MIN_EPS];
+        off = TrackGenerator.rotatePoint(off, angle);
+
+        p.pos[0] += off[0];
+        p.pos[1] += off[1];
+        if (side == 'right') p.pos[2] += Prefab.MIN_EPS;
 
         p.shapeType = type;
         p.shapeName = type.shapeName;
@@ -156,6 +156,6 @@ export class StaticObject extends PrefabObject {
         p.type = this.defaultType;
         p.name = this.defaultName;
 
-        return p;
+        return [p];
     }
 }

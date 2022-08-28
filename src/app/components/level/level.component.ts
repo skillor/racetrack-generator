@@ -105,7 +105,7 @@ export class LevelComponent implements AfterViewInit {
         this.clearCollisions('#fff');
 
         const points = this.prefab?.getSortedBounds(this.levelKey).map(
-            (o) => PrefabObject.pointFromLevel([o.pos![0], o.pos![1]], +this.prefabScale, this.prefab?.levels[this.levelKey])
+            (o) => PrefabObject.pointFromPrefabToLevel([o.pos![0], o.pos![1]], +this.prefabScale, this.prefab?.levels[this.levelKey])
         );
         if (points) Track.drawPolygon(this.collisionCanvas.getContext('2d'), points, '#000');
 
@@ -138,7 +138,7 @@ export class LevelComponent implements AfterViewInit {
     }
 
     useAsStart(obj: PrefabObject): void {
-        const pos = PrefabObject.pointFromLevel([obj.pos![0], obj.pos![1]], +this.prefabScale, this.prefab?.levels[this.levelKey]);
+        const pos = PrefabObject.pointFromPrefabToLevel([obj.pos![0], obj.pos![1]], +this.prefabScale, this.prefab?.levels[this.levelKey]);
         const angle = -obj.rot![2];
         this.startGate = JSON.stringify(
             TrackGenerator.pointToGate(<any>pos, angle, (+this.settings.minGateHalfSize + +this.settings.maxGateHalfSize) / 2, true)
@@ -146,7 +146,7 @@ export class LevelComponent implements AfterViewInit {
     }
 
     useAsEnd(obj: PrefabObject): void {
-        const pos = PrefabObject.pointFromLevel([obj.pos![0], obj.pos![1]], +this.prefabScale, this.prefab?.levels[this.levelKey]);
+        const pos = PrefabObject.pointFromPrefabToLevel([obj.pos![0], obj.pos![1]], +this.prefabScale, this.prefab?.levels[this.levelKey]);
         const angle = -obj.rot![2];
         this.endGate = JSON.stringify(
             TrackGenerator.pointToGate(<any>pos, angle, (+this.settings.minGateHalfSize + +this.settings.maxGateHalfSize) / 2, true)

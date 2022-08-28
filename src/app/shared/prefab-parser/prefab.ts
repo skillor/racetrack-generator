@@ -4,6 +4,9 @@ import { StaticObject, StaticObjectType } from './static-object';
 import { Track } from '../track-generator/track';
 import { PrefabVisitor } from './prefab-content-visitor';
 import { JsonContentVisitor } from './json-content-visitor';
+import * as THREE from 'three';
+import Delaunator from 'delaunator';
+
 
 export interface Level {
     objects: PrefabObject[],
@@ -16,6 +19,7 @@ export class Prefab {
     content: string = '';
     parsed: any;
     levels: {[key: string]:Level} = {};
+    static MIN_EPS = 0.001;
 
     constructor() {
     }
@@ -48,36 +52,73 @@ export class Prefab {
         return p;
     }
 
-    static createByTracks(tracks: {[levelKey: string]:Track}, trackScale: number, staticObjectType: StaticObjectType, prefab: Prefab | undefined = undefined): Prefab {
+    static createByTracks(
+        tracks: {[levelKey: string]:Track},
+        trackScale: number,
+        staticObjectType: StaticObjectType,
+        prefab: Prefab | null = null,
+        repeatObject: boolean = false,
+        scaleObject: number[] = [1, 1, 1],
+    ): Prefab {
         const p = new Prefab();
 
         for (let levelKey of Object.keys(tracks)) {
             const track = tracks[levelKey];
-            const referencePoints = [];
-            const minPos = [0, 0];
 
-            if (prefab !== undefined) {
+            let mesh: THREE.Mesh | null = null;
 
-                minPos[0] = prefab.levels[levelKey].minPos[0];
-                minPos[1] = prefab.levels[levelKey].minPos[1];
+            if (prefab !== null) {
+
+                const referencePoints = [];
 
                 for (let o of prefab.levels[levelKey].objects) {
-                    if (o.type == StaticObject.defaultType) referencePoints.push(o.pos!);
+                    if (o.type == StaticObject.defaultType && !o.isSpecial()) referencePoints.push(o.pos!);
                 }
+
+                const geom = new THREE.BufferGeometry();
+                geom.setFromPoints(referencePoints.map((v) => new THREE.Vector3(v[0], v[1], v[2])));
+
+                const indexDelaunay = Delaunator.from(
+                    referencePoints
+                );
+
+                const meshIndex = []; // delaunay index => three.js index
+                for (let i = 0; i < indexDelaunay.triangles.length; i++){
+                    meshIndex.push(indexDelaunay.triangles[i]);
+                }
+
+                geom.setIndex(meshIndex); // add three.js index to the existing geometry
+                geom.computeVertexNormals();
+                mesh = new THREE.Mesh(
+                    geom, // re-use the existing geometry
+                );
+
+                mesh.geometry.computeBoundingBox();
             }
 
-            for (let barrier of track.getBarrierLines()) {
-                if (!(levelKey in p.levels)) p.levels[levelKey] = Prefab.newLevel();
-                p.levels[levelKey].objects.push(
-                    StaticObject.createByLineAndType(
+            const barriers = track.getBarrierLines();
+            for (let side of ['left', 'right'] as ('left' | 'right')[]) {
+                for (let barrier of barriers[side]) {
+                    if (!(levelKey in p.levels)) p.levels[levelKey] = Prefab.newLevel();
+
+                    const objs = StaticObject.createByLineAndType(
                         [
-                            [(barrier[0][0] / trackScale) + minPos[0], (barrier[0][1] / trackScale) + minPos[1]],
-                            [(barrier[1][0] / trackScale) + minPos[0], (barrier[1][1] / trackScale) + minPos[1]],
+                            PrefabObject.pointFromLevelToPrefab(barrier[0], trackScale, prefab?.levels[levelKey]),
+                            PrefabObject.pointFromLevelToPrefab(barrier[1], trackScale, prefab?.levels[levelKey]),
                         ],
                         staticObjectType,
-                        referencePoints,
-                        )
-                );
+                        mesh,
+                        side,
+                        repeatObject,
+                        scaleObject,
+                    );
+
+                    for (let obj of objs) {
+                        p.levels[levelKey].objects.push(
+                            obj
+                        );
+                    }
+                }
             }
         }
 

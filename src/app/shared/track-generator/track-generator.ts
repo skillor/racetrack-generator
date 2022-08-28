@@ -48,7 +48,7 @@ export class TrackGenerator {
         return [Math.cos(angle), Math.sin(angle)];
     }
 
-    private angleToVectorMultiplied(angle: number, distance: number): Point {
+    static angleToVectorMultiplied(angle: number, distance: number): Point {
         return [Math.cos(angle) * distance, Math.sin(angle) * distance];
     }
 
@@ -387,7 +387,7 @@ export class TrackGenerator {
 
         for (const angle of angles) {
             vectors.push(
-                this.angleToVectorMultiplied(angle, +this.settings.gateDistance)
+                TrackGenerator.angleToVectorMultiplied(angle, +this.settings.gateDistance)
             );
         }
 

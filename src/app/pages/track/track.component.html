@@ -137,8 +137,8 @@
                     <div class="dropdown">
                         <label tabindex="0" class="btn m-1">
                             Include Tracks
-                            <svg class="ml-2 w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                                stroke="currentColor">
+                            <svg class="ml-2 w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke-width="1.5" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                             </svg>
                         </label>
@@ -146,6 +146,12 @@
                             <textarea [(ngModel)]="modIncludeTracks" class="textarea textarea-primary w-full"
                                 placeholder="racetrack_1"></textarea>
                         </div>
+                    </div>
+                    <div class="form-control w-full max-w-xs">
+                        <label class="label cursor-pointer">
+                            <span class="label-text">Repeat</span>
+                            <input type="checkbox" class="checkbox" [(ngModel)]="repeatObject" [ngModelOptions]="{standalone: true}" />
+                        </label>
                     </div>
 
                     <div class="form-control w-full max-w-xs">
@@ -178,6 +184,31 @@
                                 <span class="label-text">Z</span>
                             </label>
                             <input [(ngModel)]="exportTranslateZ" type="number" placeholder=""
+                                class="input input-bordered w-full max-w-xs" />
+                        </div>
+                    </div>
+
+                    <div class="flex flex-row">
+                        Scale:
+                        <div class="form-control w-full max-w-xs">
+                            <label class="label">
+                                <span class="label-text">X</span>
+                            </label>
+                            <input [(ngModel)]="exportScaleX" type="number" placeholder=""
+                                class="input input-bordered w-full max-w-xs" />
+                        </div>
+                        <div class="form-control w-full max-w-xs">
+                            <label class="label">
+                                <span class="label-text">Y</span>
+                            </label>
+                            <input [(ngModel)]="exportScaleY" type="number" placeholder=""
+                                class="input input-bordered w-full max-w-xs" />
+                        </div>
+                        <div class="form-control w-full max-w-xs">
+                            <label class="label">
+                                <span class="label-text">Z</span>
+                            </label>
+                            <input [(ngModel)]="exportScaleZ" type="number" placeholder=""
                                 class="input input-bordered w-full max-w-xs" />
                         </div>
                     </div>

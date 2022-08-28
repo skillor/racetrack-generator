@@ -1,7 +1,7 @@
 import { Point } from "../track-generator/point";
 import { Visitor } from "./object-visitor";
 import { Level } from "./prefab";
-import * as THREE from "./three-math";
+import * as THREE from 'three';
 
 export class PrefabObject {
     name?: string | null;
@@ -37,13 +37,22 @@ export class PrefabObject {
         return p;
     }
 
-    static pointFromLevel(p: Point, scale: number = 1, level: Level | undefined = undefined): Point {
+    static pointFromPrefabToLevel(p: Point, scale: number = 1, level: Level | undefined = undefined): Point {
         let min = [0, 0];
         if (level !== undefined) {
             min[0] = level.minPos[0];
             min[1] = level.minPos[1];
         }
         return [(p[0] - min[0]) * scale, (p[1] - min[1]) * scale];
+    }
+
+    static pointFromLevelToPrefab(p: Point, scale: number = 1, level: Level | undefined = undefined): Point {
+        let min = [0, 0];
+        if (level !== undefined) {
+            min[0] = level.minPos[0];
+            min[1] = level.minPos[1];
+        }
+        return [(p[0] / scale) + min[0], (p[1] / scale) + min[1]]
     }
 
     isStartObject(): boolean {

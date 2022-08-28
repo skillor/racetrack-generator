@@ -39,10 +39,15 @@ export class TrackComponent {
     trackName: string;
     modIncludeTracks: string;
     exportObjectType: string = this.objectValues()[0].shapeName;
+    repeatObject = true;
 
     exportTranslateX: string = '0';
     exportTranslateY: string = '0';
     exportTranslateZ: string = '0';
+
+    exportScaleX: string = '1';
+    exportScaleY: string = '1';
+    exportScaleZ: string = '1';
 
     prefab?: Prefab = undefined;
 
@@ -255,7 +260,14 @@ export class TrackComponent {
 
     private createPrefab(): Prefab {
         const type = StaticObject.shapeTypes[this.exportObjectType];
-        const prefab = Prefab.createByTracks(this.getTracks(), +this.prefabScale, type, this.prefab);
+        const prefab = Prefab.createByTracks(
+            this.getTracks(),
+            +this.prefabScale,
+            type,
+            this.prefab,
+            this.repeatObject,
+            [+this.exportScaleX, +this.exportScaleY, +this.exportScaleZ],
+        );
         prefab.translate([+this.exportTranslateX, +this.exportTranslateY, +this.exportTranslateZ]);
         prefab.stringify();
         return prefab;
