@@ -310,12 +310,8 @@ export class LevelComponent implements AfterViewInit {
 
         const ctx = canvas.getContext('2d');
         ctx!.putImageData(this.collisionCanvas!.getContext('2d')!.getImageData(0, 0, +this.trackWidth, +this.trackWidth), 0, 0);
-        ctx!.fillStyle = '#0f0';
-        const startCenter = TrackGenerator.centerOfLine(JSON.parse(this.startGate));
-        ctx!.fillRect(startCenter[0], startCenter[1], 1, 1);
-        ctx!.fillStyle = '#f00';
-        const endCenter = TrackGenerator.centerOfLine(JSON.parse(this.endGate));
-        ctx!.fillRect(endCenter[0], endCenter[1], 1, 1);
+        Track.drawGateArrow(ctx, JSON.parse(this.startGate), 3 * +this.prefabScale, '#0f0');
+        Track.drawGateArrow(ctx, JSON.parse(this.endGate), -3 * +this.prefabScale, '#f00');
         this.getTrack()?.drawBarrierLines(ctx, '#ff0');
         return canvas;
     }
