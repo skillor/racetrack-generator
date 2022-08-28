@@ -98,7 +98,7 @@ export class Prefab {
         return this.levels[levelKey].objects.filter((o) => o.isBounds()).sort((a, b) => a.getBoundsNumber() - b.getBoundsNumber());
     }
 
-    private stringify() {
+    stringify() {
         const v = new PrefabVisitor();
         v.visit(this);
         this.content = v.get();

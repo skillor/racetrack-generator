@@ -24,8 +24,7 @@ export class PrefabObject {
     }
 
     static eulerToRotationMatrix(eu: number[]): number[] {
-        const e = new THREE.Euler()
-        e.fromArray(eu.slice(0, 3));
+        const e = new THREE.Euler(-eu[0], -eu[1], -eu[2]);
         const mx = new THREE.Matrix4();
         mx.makeRotationFromEuler(e);
         const m = mx.toArray();

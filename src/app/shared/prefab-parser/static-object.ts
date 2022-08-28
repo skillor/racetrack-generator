@@ -130,7 +130,7 @@ export class StaticObject extends PrefabObject {
             }
         }
 
-        p.rot = [0, 0, angle + type.angleOffset];
+        p.rot = [0, 0, - angle - type.angleOffset];
 
         for (let i of type.adjustSizeIndex) {
             p.scale[i] = dist / type.size[i];
