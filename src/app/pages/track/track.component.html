@@ -72,7 +72,7 @@
     <div class="flex flex-row">
         <app-level *ngFor="let level of prefab?.levels | keyvalue" [levelKey]="level.key" [levelValue]="level.value"
             [defaultGeneratorMode]="generatorMode" [drawColor]="drawColor" [inputSeed]="outputSeed"
-            [strokeSize]="strokeSize" [prefab]="prefab" [prefabScale]="+prefabScale" #level></app-level>
+            [strokeSize]="strokeSize" [prefab]="prefab" [prefabScale]="+prefabScale" [sampleSize]="+importSampleSize" #level></app-level>
     </div>
     <div class="flex flex-wrap">
         <div class="btn-group btn-group-vertical">

@@ -5,7 +5,7 @@ import { Math2D } from "./math2d";
 
 export class TrackLoader {
     private static samplePoint(p: Point, sampleSize: number): Point {
-        return [Math.floor(p[0] / sampleSize) * sampleSize, Math.floor(p[1] / sampleSize) * sampleSize];
+        return [Math.floor(p[0] / sampleSize), Math.floor(p[1] / sampleSize)];
     }
 
     private static sampleLine(line: Line, sampleSize: number): Line {
@@ -66,7 +66,6 @@ export class TrackLoader {
 
                     }
                     console.log(duplicates);
-                    // console.log(usedSlopes);
                     console.log(final);
                     groups.push(final);
                 }

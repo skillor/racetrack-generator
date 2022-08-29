@@ -54,6 +54,9 @@ export class LevelComponent implements AfterViewInit {
     @Input()
     prefabScale: number = 1;
 
+    @Input()
+    sampleSize: number = 1;
+
     startGate: string = '';
     endGate: string = '';
 
@@ -301,9 +304,23 @@ export class LevelComponent implements AfterViewInit {
         this.getTrack().drawTrack(this.trackCanvas?.getContext('2d'));
     }
 
+    drawTrack() {
+        // this.getTrack().drawTrack(this.trackCanvas?.getContext('2d'));
+        const tctx = this.trackCanvas?.getContext('2d')!;
+        for (let i = 0; i < Math.ceil(+this.trackHeight / this.sampleSize); i++) {
+            for (let j = 0; j < Math.ceil(+this.trackWidth / this.sampleSize); j++) {
+                tctx.fillStyle = ((i + j) % 2 == 0) ? "white" : "black";
+                let xOffset = j * this.sampleSize;
+                let yOffset = i * this.sampleSize;
+                tctx.fillRect(xOffset, yOffset, this.sampleSize, this.sampleSize);
+            }
+        }
+        this.track!.drawBarrierLines(tctx, '#f00', '#0f0');
+    }
+
     changeDeleteBarriers() {
         this.getTrack().deletedBarriers = this.deleteBarriers.split(',').map((v) => +v);
-        this.getTrack().drawTrack(this.trackCanvas?.getContext('2d'));
+        this.drawTrack();
     }
 
     createTrackCanvas(): HTMLCanvasElement {
@@ -327,7 +344,7 @@ export class LevelComponent implements AfterViewInit {
         );
     }
 
-    importTrack(img: HTMLImageElement, xOffset: number, sampleSize: number) {
+    importTrack(img: HTMLImageElement, xOffset: number) {
         const width = +this.trackWidth;
         const height = +this.trackHeight;
 
@@ -351,8 +368,7 @@ export class LevelComponent implements AfterViewInit {
             }
         }
 
-        this.track = TrackLoader.fromPixels(pixels, sampleSize);
-        const tctx = this.trackCanvas?.getContext('2d');
-        this.track.drawTrack(tctx);
+        this.track = TrackLoader.fromPixels(pixels, this.sampleSize);
+        this.drawTrack();
     }
 }

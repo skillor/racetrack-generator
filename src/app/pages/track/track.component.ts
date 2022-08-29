@@ -239,7 +239,7 @@ export class TrackComponent {
                     if (!this.levelComponents) return;
                     let x = 0;
                     for (let c of this.levelComponents) {
-                        c.importTrack(img, x, +this.importSampleSize);
+                        c.importTrack(img, x);
                         x += +c.trackWidth;
                     }
                 };
