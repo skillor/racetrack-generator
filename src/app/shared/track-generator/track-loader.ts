@@ -1,81 +1,53 @@
-import { Point } from "./point";
-import { Line } from "./line";
-import { Track } from "./track";
 import { Math2D } from "./math2d";
+import { Track } from "./track";
+import * as ImageTracer from './imagetracer';
+import { Line } from "./line";
 
 export class TrackLoader {
-    private static samplePoint(p: Point, sampleSize: number): Point {
-        return [Math.floor(p[0] / sampleSize), Math.floor(p[1] / sampleSize)];
-    }
+    static fromImage(canvas: HTMLCanvasElement, ltres: number): Track {
+        const width = canvas.width;
+        const height = canvas.height;
 
-    private static sampleLine(line: Line, sampleSize: number): Line {
-        return [this.samplePoint(line[0], sampleSize), this.samplePoint(line[1], sampleSize)];
-    }
+        const match = new Uint8ClampedArray([255, 255, 0]);
 
-    static fromPixels(pixels: boolean[][], sampleSize: number): Track {
+        const ctx = canvas.getContext('2d')!;
+
+        const sampleSize = 1;
+
+        const canvas2 = document.createElement('canvas');
+        canvas2.width = Math.ceil(width / sampleSize);
+        canvas2.height = Math.ceil(height / sampleSize);
+        const ctx2 = canvas2.getContext('2d')!;
+        ctx2.fillStyle = '#fff';
+
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                if (Math2D.colorMatch(ctx.getImageData(x, y, 1, 1).data, match, 10)) ctx2.fillRect(Math.floor(x / sampleSize), Math.floor(y / sampleSize), 1, 1);
+            }
+        }
+
+        const options = { qtres:0.01, ltres: ltres, pal: [{r:0,g:0,b:0,a:255}, {r:255,g:255,b:255,a:255}] };
+
         const groups: Line[][] = [];
-
-        for (let y = 0; y < pixels.length; y++) {
-            for (let x = 0; x < pixels[y].length; x++) {
-
-                if (pixels[y][x]) {
-                    const points: Point[] = [];
-                    const conns: number[] = [];
-
-                    const s: [Point, number][] = [];
-
-                    s.push([[x, y], -1]);
-
-                    while (true) {
-                        const t = s.pop();
-                        if (t === undefined) break;
-                        const v = t[0];
-                        points.push(v);
-                        conns.push(t[1]);
-                        const n = points.length - 1;
-                        pixels[v[1]][v[0]] = false;
-                        for (let d of [
-                            [1, 1],
-                            [0, 1],
-                            [1, 0],
-                            [0, -1],
-                            [-1, 0],
-                            [-1, -1],
-                        ]) {
-                            const np: Point = [v[0] + d[0], v[1] + d[1]];
-                            if (np[0] >= 0 && np[0] < pixels[y].length &&
-                                np[1] >= 0 && np[1] < pixels.length &&
-                                pixels[np[1]][np[0]]) {
-                                s.push([np, n]);
-                            }
-                        }
+        const trace = ImageTracer.imagedataToTracedata(ctx2.getImageData(0, 0, width, height), options);
+        console.log(trace);
+        for (let i = 0; i < trace.palette.length; i++) {
+            if (trace.palette[i].r != 0) {
+                for (let o of trace.layers[i]) {
+                    if (o.isholepath) continue;
+                    const lines: Line[] = [];
+                    for (let seg of o.segments) {
+                        const line: Line = [[seg.x1 * sampleSize, seg.y1 * sampleSize], [seg.x2 * sampleSize, seg.y2 * sampleSize]];
+                        lines.push(line);
                     }
-
-                    const squashedPoints: Point[] = [];
-                    for (let p of points) {
-                        squashedPoints.push(this.samplePoint(p, sampleSize));
-                    }
-
-                    const duplicates = Math2D.findDuplicates(squashedPoints, Math2D.pointEquals);
-                    const final: Line[] = [];
-                    for (let d of duplicates) {
-                        if (d.length > 1) {
-                            let l = Math2D.bestLineThroughPoints(points, d);
-                            final.push(l);
-                        }
-
-                    }
-                    console.log(duplicates);
-                    console.log(final);
-                    groups.push(final);
+                    groups.push(lines);
                 }
             }
         }
 
-        const track = new Track(pixels[0].length, pixels.length, [], [], []);
+        const track = new Track(width, height, [], [], []);
         track.barrierLines = { left: groups.filter((_, i) => i % 2 == 0).flat(), right: groups.filter((_, i) => i % 2 == 1).flat() };
 
-        // console.log(groups);
         return track;
     }
 }

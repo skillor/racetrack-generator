@@ -347,18 +347,7 @@ export class LevelComponent implements AfterViewInit {
         if (!ctx) return;
         ctx.drawImage(img, xOffset, 0, width, height, 0, 0, width, height);
 
-        const match = new Uint8ClampedArray([255, 255, 0]);
-
-        const pixels: boolean[][] = new Array<boolean[]>(height);
-
-        for (let y = 0; y < height; y++) {
-            pixels[y] = new Array<boolean>(width);
-            for (let x = 0; x < width; x++) {
-                pixels[y][x] = Math2D.colorMatch(ctx.getImageData(x, y, 1, 1).data, match, 10);
-            }
-        }
-
-        this.track = TrackLoader.fromPixels(pixels, this.sampleSize);
+        this.track = TrackLoader.fromImage(canvas, this.sampleSize);
         this.drawTrack();
     }
 }
