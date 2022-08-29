@@ -215,6 +215,7 @@ export class Math2D {
                 cr = [];
             }
         }
+        results.push(cr);
         return results;
     }
 
@@ -234,5 +235,85 @@ export class Math2D {
         }
         const n = indezes.length;
         return [x / n, y / n];
+    }
+
+    static bestMBThroughPoints(points: Point[], indezes: number[]): [number, number] {
+        let x_sum = 0;
+        let y_sum = 0;
+        let xy_sum = 0;
+        let xx_sum = 0;
+        let count = 0;
+
+        /*
+        * The above is just for quick access, makes the program faster
+        */
+        let x = 0;
+        let y = 0;
+        const values_length = indezes.length;
+
+        /*
+        * Above and below cover edge cases
+        */
+        if (values_length === 0) {
+            console.log('heyo');
+            return [ 0, 0 ];
+        }
+
+        /*
+        * Calculate the sum for each of the parts necessary.
+        */
+        for (let i of indezes) {
+            x = points[i][0];
+            y = points[i][1];
+            x_sum += x;
+            y_sum += y;
+            xx_sum += x*x;
+            xy_sum += x*y;
+            count++;
+        }
+
+        /*
+        * Calculate m and b for the line equation:
+        * y = x * m + b
+        */
+        const m = (count*xy_sum - x_sum*y_sum) / (count*xx_sum - x_sum*x_sum);
+        const b = (y_sum/count) - (m*x_sum)/count;
+
+        return [m, b];
+    }
+
+    static bestLineThroughPoints(points: Point[], indezes: number[]): Line {
+        let minx = Infinity;
+        let maxx  = 0;
+        let miny = Infinity;
+        let maxy  = 0;
+
+        /*
+        * Calculate the sum for each of the parts necessary.
+        */
+       let x, y;
+        for (let i of indezes) {
+            x = points[i][0];
+            y = points[i][1];
+            minx = Math.min(minx, x);
+            maxx = Math.max(maxx, x);
+            miny = Math.min(miny, y);
+            maxy = Math.max(maxy, y);
+        }
+
+        const r = this.bestMBThroughPoints(points, indezes);
+
+        // let minxY = r[0] * minx + r[1];
+        // let maxxY = r[0] * maxx + r[1];
+        // minxY = Math.max(Math.min(maxy, minxY), miny);
+        // maxxY = Math.max(Math.min(maxy, maxxY), miny);
+
+        // return [[minx, minxY], [maxx, maxxY]];
+        if (r[0] < 0) {
+            let t = minx;
+            minx = maxx;
+            maxx = t;
+        }
+        return [[minx, miny], [maxx, maxy]];
     }
 }

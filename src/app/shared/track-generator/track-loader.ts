@@ -57,45 +57,17 @@ export class TrackLoader {
                     }
 
                     const duplicates = Math2D.findDuplicates(squashedPoints, Math2D.pointEquals);
-                    const calcDuplicates: { [key: number]: Point } = {};
-                    const usedSlopes: { [key: string]: number[] } = {};
                     const final: Line[] = [];
-                    for (let i = 0; i < duplicates.length; i++) {
-                        const d = duplicates[i];
-                        const startI = d[0];
-                        let prevI = conns[startI];
-                        search: while (prevI != -1) {
-                            if (!Math2D.pointEquals(squashedPoints[startI], squashedPoints[prevI])) {
-
-                                let p1;
-                                if (startI in calcDuplicates) p1 = calcDuplicates[startI];
-                                else {
-                                    p1 = Math2D.medianOfPoints(points, d);
-                                    calcDuplicates[startI] = p1;
-                                }
-                                let p2: Point;
-                                if (prevI in calcDuplicates) p2 = calcDuplicates[prevI];
-                                else {
-                                    p2 = Math2D.medianOfPoints(points, Math2D.findDuplicatesByIndex(prevI, duplicates));
-                                    calcDuplicates[prevI] = p2;
-                                }
-                                const l: Line = [p1, p2];
-                                const m = Math.abs(Math2D.lineGetM(l));
-                                for (let p of [p1, p2]) {
-                                    if (!(''+p in usedSlopes)) usedSlopes[''+p] = [];
-                                    if (usedSlopes[''+p].includes(m)) break search;
-                                }
-                                final.push(l);
-                                for (let p of [p1, p2]) {
-                                    usedSlopes[''+p].push(m);
-                                }
-                                break search;
-                            }
-                            prevI = conns[prevI];
+                    for (let d of duplicates) {
+                        if (d.length > 1) {
+                            let l = Math2D.bestLineThroughPoints(points, d);
+                            final.push(l);
                         }
+
                     }
-                    console.log(usedSlopes);
-                    // console.log(final);
+                    console.log(duplicates);
+                    // console.log(usedSlopes);
+                    console.log(final);
                     groups.push(final);
                 }
             }
