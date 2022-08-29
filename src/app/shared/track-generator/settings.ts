@@ -18,7 +18,7 @@ export class Settings {
     constructor(obj: any = {}) {
         for (const key of this.getPropertyNames()) {
             let v = obj[key];
-            if (this.getType(this.getProperty(key)) === 'number') v = +v;
+            if (this.getType(v) !== 'undefined' && this.getType(this.getProperty(key)) === 'number') v = +v;
             this.setProperty(key, v);
         }
     }

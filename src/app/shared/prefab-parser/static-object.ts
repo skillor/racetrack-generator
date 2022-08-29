@@ -5,6 +5,7 @@ import { Visitor } from "./object-visitor";
 import { Level, Prefab } from "./prefab";
 import { PrefabObject } from "./prefab-object";
 import * as THREE from 'three';
+import { Math2D } from "../track-generator/math2d";
 
 export type StaticObjectType = {
     label: string,
@@ -77,7 +78,7 @@ export class StaticObject extends PrefabObject {
         if (this.shapeType === undefined) return [];
         const center: Point = [this.pos![0], this.pos![1]];
         const size: Point = [this.shapeType.size[0] * this.scale[0] * 0.5, this.shapeType.size[1] * this.scale[1] * 0.5];
-        const points = TrackGenerator.rotatedRect(center, size, -this.rot![2]);
+        const points = Math2D.rotatedRect(center, size, -this.rot![2]);
         for (let i = 0; i < points.length; i++) {
             points[i] = PrefabObject.pointFromPrefabToLevel(points[i], scale, level);
         }
@@ -92,9 +93,9 @@ export class StaticObject extends PrefabObject {
         repeatObject: boolean = false,
         scaleObject: number[] = [1, 1, 1],
     ): StaticObject[] {
-        const dist = TrackGenerator.lineLength(line);
-        const center = TrackGenerator.centerOfLine(line);
-        const angle = TrackGenerator.normalizeAngle(TrackGenerator.lineAngle(line));
+        const dist = Math2D.lineLength(line);
+        const center = Math2D.centerOfLine(line);
+        const angle = Math2D.normalizeAngle(Math2D.lineAngle(line));
         let quaternion = new THREE.Quaternion();
         quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -angle-type.angleOffset);
 
@@ -113,7 +114,7 @@ export class StaticObject extends PrefabObject {
             const meshCenter = new THREE.Vector3();
             mesh.geometry.boundingBox!.getCenter(meshCenter);
 
-            const targetAngle = TrackGenerator.lineAngle([
+            const targetAngle = Math2D.lineAngle([
                 center,
                 [meshCenter.x, meshCenter.y],
             ])
@@ -121,7 +122,7 @@ export class StaticObject extends PrefabObject {
             let off = 0;
             let collisionResults: THREE.Intersection[] = [];
             while (collisionResults.length == 0) {
-                const offV = TrackGenerator.angleToVectorMultiplied(targetAngle, off);
+                const offV = Math2D.angleToVectorMultiplied(targetAngle, off);
                 off += Prefab.MIN_EPS;
                 const ray = new THREE.Raycaster(new THREE.Vector3(p.pos[0] + offV[0], p.pos[1] + offV[1], 0), new THREE.Vector3(0, 0, 1));
                 collisionResults = ray.intersectObject(mesh);
@@ -144,7 +145,7 @@ export class StaticObject extends PrefabObject {
         p.rot[2] = euler.z;
 
         let off: Point = [Prefab.MIN_EPS, Prefab.MIN_EPS];
-        off = TrackGenerator.rotatePoint(off, angle);
+        off = Math2D.rotatePoint(off, angle);
 
         p.pos[0] += off[0];
         p.pos[1] += off[1];

@@ -3,10 +3,15 @@ import { Level, Prefab } from 'src/app/shared/prefab-parser/prefab';
 import { PrefabObject } from 'src/app/shared/prefab-parser/prefab-object';
 import { StaticObject } from 'src/app/shared/prefab-parser/static-object';
 import { StorageService } from 'src/app/shared/storage/storage.service';
+import { Drawer } from 'src/app/shared/track-generator/drawer';
 import { GeneratorMode } from 'src/app/shared/track-generator/generator-modes';
+import { Line } from 'src/app/shared/track-generator/line';
+import { Math2D } from 'src/app/shared/track-generator/math2d';
+import { Point } from 'src/app/shared/track-generator/point';
 import { Settings } from 'src/app/shared/track-generator/settings';
 import { Track } from 'src/app/shared/track-generator/track';
 import { TrackGenerator } from 'src/app/shared/track-generator/track-generator';
+import { TrackLoader } from 'src/app/shared/track-generator/track-loader';
 
 
 @Component({
@@ -68,7 +73,7 @@ export class LevelComponent implements AfterViewInit {
 
     constructor(
         private storageService: StorageService,
-    ) {}
+    ) { }
 
     loadConfig() {
         this.startGate = this.storageService.load(this.getStorageKey('track_start'), this.startGate);
@@ -107,7 +112,7 @@ export class LevelComponent implements AfterViewInit {
         const points = this.prefab?.getSortedBounds(this.levelKey).map(
             (o) => PrefabObject.pointFromPrefabToLevel([o.pos![0], o.pos![1]], +this.prefabScale, this.prefab?.levels[this.levelKey])
         );
-        if (points) Track.drawPolygon(this.collisionCanvas.getContext('2d'), points, '#000');
+        if (points) Drawer.drawPolygon(this.collisionCanvas.getContext('2d'), points, '#000');
 
         this.autoCollision();
         this.autoStartEnd();
@@ -134,14 +139,14 @@ export class LevelComponent implements AfterViewInit {
         const sobj = <StaticObject>obj;
         if (sobj.hasOwnProperty('shapeType') && sobj.shapeType === undefined) return;
         const box = sobj.get2DBox(+this.prefabScale, this.prefab?.levels[this.levelKey]);
-        Track.drawPolygon(this.collisionCanvas!.getContext('2d'), box, '#fff');
+        Drawer.drawPolygon(this.collisionCanvas!.getContext('2d'), box, '#fff');
     }
 
     useAsStart(obj: PrefabObject): void {
         const pos = PrefabObject.pointFromPrefabToLevel([obj.pos![0], obj.pos![1]], +this.prefabScale, this.prefab?.levels[this.levelKey]);
         const angle = -obj.rot![2];
         this.startGate = JSON.stringify(
-            TrackGenerator.pointToGate(<any>pos, angle, (+this.settings.minGateHalfSize + +this.settings.maxGateHalfSize) / 2, true)
+            Math2D.pointToGate(<any>pos, angle, (+this.settings.minGateHalfSize + +this.settings.maxGateHalfSize) / 2, true)
         );
     }
 
@@ -149,7 +154,7 @@ export class LevelComponent implements AfterViewInit {
         const pos = PrefabObject.pointFromPrefabToLevel([obj.pos![0], obj.pos![1]], +this.prefabScale, this.prefab?.levels[this.levelKey]);
         const angle = -obj.rot![2];
         this.endGate = JSON.stringify(
-            TrackGenerator.pointToGate(<any>pos, angle, (+this.settings.minGateHalfSize + +this.settings.maxGateHalfSize) / 2, true)
+            Math2D.pointToGate(<any>pos, angle, (+this.settings.minGateHalfSize + +this.settings.maxGateHalfSize) / 2, true)
         );
     }
 
@@ -243,9 +248,9 @@ export class LevelComponent implements AfterViewInit {
         const match = new Uint8ClampedArray([255, 255, 255]);
         const collisions: boolean[][] = new Array<boolean[]>(height);
         for (let y = 0; y < height; y++) {
-            collisions[y] = new Array<boolean>(+this.trackWidth);
+            collisions[y] = new Array<boolean>(width);
             for (let x = 0; x < width; x++) {
-                collisions[y][x] = TrackGenerator.colorMatch(context.getImageData(x, y, 1, 1).data, match);
+                collisions[y][x] = Math2D.colorMatch(context.getImageData(x, y, 1, 1).data, match);
             }
         }
 
@@ -253,8 +258,6 @@ export class LevelComponent implements AfterViewInit {
             width,
             height,
             collisions,
-            undefined,
-            this.trackCanvas!,
             [
                 endGate,
                 startGate,
@@ -286,7 +289,7 @@ export class LevelComponent implements AfterViewInit {
             this.generationTime = gen[0];
             this.generationIterations = gen[1];
 
-            this.getTrack().drawTrack();
+            this.getTrack().drawTrack(this.trackCanvas?.getContext('2d'));
         });
     }
 
@@ -295,12 +298,12 @@ export class LevelComponent implements AfterViewInit {
 
         this.getTrack().deleteLastGates(+this.settings.maxSegments);
 
-        this.getTrack().drawTrack();
+        this.getTrack().drawTrack(this.trackCanvas?.getContext('2d'));
     }
 
     changeDeleteBarriers() {
         this.getTrack().deletedBarriers = this.deleteBarriers.split(',').map((v) => +v);
-        this.getTrack().drawTrack();
+        this.getTrack().drawTrack(this.trackCanvas?.getContext('2d'));
     }
 
     createTrackCanvas(): HTMLCanvasElement {
@@ -310,9 +313,46 @@ export class LevelComponent implements AfterViewInit {
 
         const ctx = canvas.getContext('2d');
         ctx!.putImageData(this.collisionCanvas!.getContext('2d')!.getImageData(0, 0, +this.trackWidth, +this.trackWidth), 0, 0);
-        Track.drawGateArrow(ctx, JSON.parse(this.startGate), 3 * +this.prefabScale, '#0f0');
-        Track.drawGateArrow(ctx, JSON.parse(this.endGate), -3 * +this.prefabScale, '#f00');
+        Drawer.drawGateArrow(ctx, JSON.parse(this.startGate), 3 * +this.prefabScale, '#0f0');
+        Drawer.drawGateArrow(ctx, JSON.parse(this.endGate), -3 * +this.prefabScale, '#f00');
         this.getTrack()?.drawBarrierLines(ctx, '#ff0');
         return canvas;
+    }
+
+    importCollision(img: HTMLImageElement, xOffset: number) {
+        this.collisionCanvas!.getContext('2d')?.drawImage(
+            img, xOffset, 0,
+            this.collisionCanvas!.width, this.collisionCanvas!.height,
+            0, 0, this.collisionCanvas!.width, this.collisionCanvas!.height
+        );
+    }
+
+    importTrack(img: HTMLImageElement, xOffset: number, sampleSize: number) {
+        const width = +this.trackWidth;
+        const height = +this.trackHeight;
+
+        const canvas = document.createElement('canvas');
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.drawImage(img, xOffset, 0, width, height, 0, 0, width, height);
+
+        const match = new Uint8ClampedArray([255, 255, 0]);
+
+        const pixels: boolean[][] = new Array<boolean[]>(height);
+
+        for (let y = 0; y < height; y++) {
+            pixels[y] = new Array<boolean>(width);
+            for (let x = 0; x < width; x++) {
+                pixels[y][x] = Math2D.colorMatch(ctx.getImageData(x, y, 1, 1).data, match, 10);
+            }
+        }
+
+        this.track = TrackLoader.fromPixels(pixels, sampleSize);
+        const tctx = this.trackCanvas?.getContext('2d');
+        this.track.drawTrack(tctx);
     }
 }

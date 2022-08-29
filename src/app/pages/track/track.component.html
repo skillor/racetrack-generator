@@ -92,6 +92,12 @@
         <div>Track Layout</div>
         <button class="btn" (click)="importTrack()">Import Track</button>
         <button class="btn" (click)="exportTrack()">Export Track</button>
+        <div class="form-control w-full max-w-xs">
+            <label class="label">
+                <span class="label-text">Sample Size</span>
+            </label>
+            <input [(ngModel)]="importSampleSize" type="number" placeholder="" class="input input-bordered w-full max-w-xs" />
+        </div>
     </div>
     <div>
         <div>

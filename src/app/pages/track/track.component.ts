@@ -28,6 +28,7 @@ export class TrackComponent {
     generationIterations = 0;
 
     prefabScale: string;
+    importSampleSize: string = '10';
 
     prefabNames = [
         'westcoast_track_parkinglot.prefab',
@@ -68,7 +69,6 @@ export class TrackComponent {
         }
 
         this.prefabScale = this.storageService.load('prefab_scale', '2');
-
         this.strokeSize = this.storageService.load('stroke_size', '1');
 
         this.generatorMode = this.storageService.load('track_gen_mode', 'random');
@@ -77,8 +77,9 @@ export class TrackComponent {
 
     saveConfig() {
         this.storageService.save('prefab_scale', this.prefabScale);
-
         this.storageService.save('stroke_size', this.strokeSize);
+        this.storageService.save('track_gen_mode', this.generatorMode);
+        this.storageService.save('track_seed', this.inputSeed);
     }
 
     settingsAsAny(): any {
@@ -185,12 +186,8 @@ export class TrackComponent {
                     if (!this.levelComponents) return;
                     let x = 0;
                     for (let c of this.levelComponents) {
-                        c.collisionCanvas!.getContext('2d')?.drawImage(
-                            img, x,
-                            0, c.collisionCanvas!.width, c.collisionCanvas!.height,
-                            0, 0, c.collisionCanvas!.width, c.collisionCanvas!.height
-                        );
-                        x += c.collisionCanvas!.width;
+                        c.importCollision(img, x);
+                        x += +c.trackWidth;
                     }
                 };
                 img.src = <string>e.target.result;
@@ -217,7 +214,41 @@ export class TrackComponent {
     }
 
     importTrack(): void {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.png';
+        input.style.display = 'none';
+        document.body.appendChild(input);
 
+        const onEnd = () => {
+            document.body.removeChild(input);
+        };
+
+        input.onchange = () => {
+            if (!input.files || input.files.length == 0 || input.files[0].size > 250000000 || !FileReader) {
+                return onEnd();
+            }
+            const file = input.files[0];
+            const fileReader = new FileReader();
+            fileReader.onload = (e) => {
+                if (!e.target || !e.target.result) {
+                    return onEnd();
+                }
+                const img = new Image();
+                img.onload = (e) => {
+                    if (!this.levelComponents) return;
+                    let x = 0;
+                    for (let c of this.levelComponents) {
+                        c.importTrack(img, x, +this.importSampleSize);
+                        x += +c.trackWidth;
+                    }
+                };
+                img.src = <string>e.target.result;
+                onEnd();
+            };
+            fileReader.readAsDataURL(file);
+        };
+        input.click();
     }
 
     importPrefab(): void {
