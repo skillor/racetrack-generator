@@ -38,21 +38,21 @@ export class PrefabObject {
     }
 
     static pointFromPrefabToLevel(p: Point, scale: number = 1, level: Level | undefined = undefined): Point {
-        let min = [0, 0];
+        let off = [0, 0];
         if (level !== undefined) {
-            min[0] = level.minPos[0];
-            min[1] = level.minPos[1];
+            off[0] = level.minPos[0];
+            off[1] = level.maxPos[1];
         }
-        return [(p[0] - min[0]) * scale, (p[1] - min[1]) * scale];
+        return [(p[0] - off[0]) * scale, (off[1] - p[1]) * scale];
     }
 
     static pointFromLevelToPrefab(p: Point, scale: number = 1, level: Level | undefined = undefined): Point {
-        let min = [0, 0];
+        let off = [0, 0];
         if (level !== undefined) {
-            min[0] = level.minPos[0];
-            min[1] = level.minPos[1];
+            off[0] = level.minPos[0];
+            off[1] = level.maxPos[1];
         }
-        return [(p[0] / scale) + min[0], (p[1] / scale) + min[1]]
+        return [(p[0] / scale) - off[0], off[1] - (p[1] / scale)]
     }
 
     isStartObject(): boolean {
