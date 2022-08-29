@@ -305,17 +305,7 @@ export class LevelComponent implements AfterViewInit {
     }
 
     drawTrack() {
-        // this.getTrack().drawTrack(this.trackCanvas?.getContext('2d'));
-        const tctx = this.trackCanvas?.getContext('2d')!;
-        for (let i = 0; i < Math.ceil(+this.trackHeight / this.sampleSize); i++) {
-            for (let j = 0; j < Math.ceil(+this.trackWidth / this.sampleSize); j++) {
-                tctx.fillStyle = ((i + j) % 2 == 0) ? "white" : "black";
-                let xOffset = j * this.sampleSize;
-                let yOffset = i * this.sampleSize;
-                tctx.fillRect(xOffset, yOffset, this.sampleSize, this.sampleSize);
-            }
-        }
-        this.track!.drawBarrierLines(tctx, '#f00', '#0f0');
+        this.getTrack().drawTrack(this.trackCanvas?.getContext('2d'));
     }
 
     changeDeleteBarriers() {
