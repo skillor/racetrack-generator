@@ -149,6 +149,7 @@ export class StaticObject extends PrefabObject {
 
         p.pos[0] += off[0];
         p.pos[1] += off[1];
+        p.pos[2] += off[0];
         if (side == 'right') p.pos[2] += Prefab.MIN_EPS;
 
         p.shapeType = type;

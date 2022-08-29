@@ -52,7 +52,7 @@ export class PrefabObject {
             off[0] = level.minPos[0];
             off[1] = level.maxPos[1];
         }
-        return [(p[0] / scale) - off[0], off[1] - (p[1] / scale)]
+        return [(p[0] / scale) + off[0], off[1] - (p[1] / scale)]
     }
 
     isStartObject(): boolean {
