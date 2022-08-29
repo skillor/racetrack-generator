@@ -72,7 +72,7 @@ export class Drawer {
         context.strokeStyle = color;
         context.lineWidth = 1;
 
-        let angle = Math2D.gateAngle(gate);
+        let angle = -Math2D.gateAngle(gate);
 
         let start = Math2D.centerOfLine(gate);
         let v = Math2D.angleToVectorMultiplied(angle, size);
