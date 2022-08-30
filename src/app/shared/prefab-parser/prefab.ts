@@ -15,6 +15,12 @@ export interface Level {
     size: number[],
 }
 
+export const PRESETS = [
+    'westcoast_track_parkinglot.prefab',
+    'westcoast_parking_garage.prefab',
+];
+
+
 export class Prefab {
     content: string = '';
     parsed: any;

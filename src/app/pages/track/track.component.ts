@@ -1,8 +1,7 @@
 import { Component, QueryList, ViewChildren } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import * as fflate from 'fflate';
-import { PrefabObject } from 'src/app/shared/prefab-parser/prefab-object';
-import { Prefab } from 'src/app/shared/prefab-parser/prefab';
+import { PRESETS, Prefab } from 'src/app/shared/prefab-parser/prefab';
 import { StaticObject, StaticObjectType } from 'src/app/shared/prefab-parser/static-object';
 import { StorageService } from 'src/app/shared/storage/storage.service';
 import { GeneratorMode } from 'src/app/shared/track-generator/generator-modes';
@@ -29,11 +28,6 @@ export class TrackComponent {
 
     prefabScale: string;
     importSampleSize: string = '10';
-
-    prefabNames = [
-        'westcoast_track_parkinglot.prefab',
-        'westcoast_parking_garage.prefab',
-    ];
 
     trackNamePrefix = 'racetrack_';
     amountTracks = 5;
@@ -80,6 +74,10 @@ export class TrackComponent {
         this.storageService.save('stroke_size', this.strokeSize);
         this.storageService.save('track_gen_mode', this.generatorMode);
         this.storageService.save('track_seed', this.inputSeed);
+    }
+
+    presets(): string[] {
+        return PRESETS;
     }
 
     settingsAsAny(): any {

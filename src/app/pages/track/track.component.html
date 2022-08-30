@@ -120,7 +120,7 @@
                         </svg>
                     </label>
                     <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
-                        <li *ngFor="let name of prefabNames"><button class="btn"
+                        <li *ngFor="let name of presets()"><button class="btn"
                                 (click)="loadPrefab(name)">{{name}}</button></li>
                     </ul>
                 </div>
