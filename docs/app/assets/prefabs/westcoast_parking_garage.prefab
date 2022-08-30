@@ -4,6 +4,28 @@ $ThisPrefab = new SimGroup() {
    canSaveDynamicFields = "1";
       groupPosition = "0 0 0";
 
+   new TSStatic(level_1_keep_1) {
+      shapeName = "/art/shapes/material_preview/cube_1m.dae";
+      dynamic = "0";
+      playAmbient = "1";
+      meshCulling = "0";
+      originSort = "0";
+      useInstanceRenderData = "1";
+      instanceColor = "1 0.999989986 0.999989986 1";
+      instanceColor1 = "1 0.999989986 0.999989986 1";
+      instanceColor2 = "1 0.999989986 0.999989986 1";
+      collisionType = "Visible Mesh Final";
+      decalType = "Visible Mesh Final";
+      prebuildCollisionData = "0";
+      renderNormals = "0";
+      forceDetail = "-1";
+      position = "-391.055603 299.198395 101.811996";
+      scale = "2.22374105 5.63748884 0.0399999991";
+      rotationMatrix = "0.69386816 0.694297731 -0.191043243 -0.707437217 0.706775665 -0.000813499093 0.134459913 0.135715574 0.981581211";
+      isRenderEnabled = "false";
+      canSave = "1";
+      canSaveDynamicFields = "1";
+   };
    new TSStatic(level_1_keep_9) {
       shapeName = "/art/shapes/halloween/scarecrow.dae";
       dynamic = "0";
@@ -3737,7 +3759,7 @@ $ThisPrefab = new SimGroup() {
       prebuildCollisionData = "0";
       renderNormals = "0";
       forceDetail = "-1";
-      position = "-437.875305 273.650696 108.401001";
+      position = "-437.875305 273.650696 108.403999";
       scale = "2.22374105 4.93107271 0.0399999991";
       rotationMatrix = "0.707106769 0.707106769 0 -0.707106769 0.707106769 0 0 0 1";
       isRenderEnabled = "false";
@@ -3781,7 +3803,7 @@ $ThisPrefab = new SimGroup() {
       prebuildCollisionData = "0";
       renderNormals = "0";
       forceDetail = "-1";
-      position = "-401.982971 309.640381 108.401001";
+      position = "-401.982971 309.640381 108.403999";
       scale = "1.46449924 4.93107271 0.0399999991";
       rotationMatrix = "0.707106769 0.707106769 0 -0.707106769 0.707106769 0 0 0 1";
       isRenderEnabled = "false";
@@ -3869,7 +3891,7 @@ $ThisPrefab = new SimGroup() {
       prebuildCollisionData = "0";
       renderNormals = "0";
       forceDetail = "-1";
-      position = "-437.875305 273.650696 105.203545";
+      position = "-437.875305 273.650696 105.206001";
       scale = "2.22374105 4.93107271 0.0399999991";
       rotationMatrix = "0.707106769 0.707106769 0 -0.707106769 0.707106769 0 0 0 1";
       isRenderEnabled = "false";
@@ -3913,31 +3935,9 @@ $ThisPrefab = new SimGroup() {
       prebuildCollisionData = "0";
       renderNormals = "0";
       forceDetail = "-1";
-      position = "-401.982971 309.640381 105.203545";
+      position = "-401.982971 309.640381 105.207001";
       scale = "1.46449924 4.93107271 0.0399999991";
       rotationMatrix = "0.707106769 0.707106769 0 -0.707106769 0.707106769 0 0 0 1";
-      isRenderEnabled = "false";
-      canSave = "1";
-      canSaveDynamicFields = "1";
-   };
-   new TSStatic(level_1_keep_1) {
-      shapeName = "/art/shapes/material_preview/cube_1m.dae";
-      dynamic = "0";
-      playAmbient = "1";
-      meshCulling = "0";
-      originSort = "0";
-      useInstanceRenderData = "1";
-      instanceColor = "1 0.999989986 0.999989986 1";
-      instanceColor1 = "1 0.999989986 0.999989986 1";
-      instanceColor2 = "1 0.999989986 0.999989986 1";
-      collisionType = "Visible Mesh Final";
-      decalType = "Visible Mesh Final";
-      prebuildCollisionData = "0";
-      renderNormals = "0";
-      forceDetail = "-1";
-      position = "-391.055603 299.198395 101.812531";
-      scale = "2.22374105 4.93107271 0.0399999991";
-      rotationMatrix = "0.69386816 0.694297731 -0.191043243 -0.707437217 0.706775665 -0.000813499093 0.134459913 0.135715574 0.981581211";
       isRenderEnabled = "false";
       canSave = "1";
       canSaveDynamicFields = "1";
@@ -3979,7 +3979,7 @@ $ThisPrefab = new SimGroup() {
       prebuildCollisionData = "0";
       renderNormals = "0";
       forceDetail = "-1";
-      position = "-437.875305 273.650696 102.02092";
+      position = "-437.875305 273.650696 102.024002";
       scale = "2.22374105 4.93107271 0.0399999991";
       rotationMatrix = "0.707106769 0.707106769 0 -0.707106769 0.707106769 0 0 0 1";
       isRenderEnabled = "false";
@@ -4023,7 +4023,7 @@ $ThisPrefab = new SimGroup() {
       prebuildCollisionData = "0";
       renderNormals = "0";
       forceDetail = "-1";
-      position = "-401.982971 309.640381 102.02092";
+      position = "-401.982971 309.640381 102.024002";
       scale = "1.46449924 4.93107271 0.0399999991";
       rotationMatrix = "0.707106769 0.707106769 0 -0.707106769 0.707106769 0 0 0 1";
       isRenderEnabled = "false";
@@ -4076,6 +4076,8 @@ $ThisPrefab = new SimGroup() {
    };
 };
 //--- OBJECT WRITE END ---
+
+
 
 
 
