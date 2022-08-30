@@ -24,6 +24,10 @@ export class PrefabVisitor implements Visitor {
         this.writeLine('canSaveDynamicFields = "1";');
         this.writeLine('groupPosition = "0 0 0";');
 
+        for (let keep of prefab.keeps) {
+            keep.accept(this);
+        }
+
         for (let level of Object.values(prefab.levels)) {
             for (let o of level.objects) {
                 o.accept(this);

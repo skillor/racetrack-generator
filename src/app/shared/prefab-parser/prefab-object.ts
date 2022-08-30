@@ -19,8 +19,8 @@ export class PrefabObject {
         const eu = new THREE.Euler();
         const m = new THREE.Matrix4();
         m.set(rot[0], rot[1], rot[2], 1, rot[3], rot[4], rot[5], 1, rot[6], rot[7], rot[8], 1, 0, 0, 0, 1);
-        eu.setFromRotationMatrix(m);
-        return eu.toArray().slice(0, 3);
+        eu.setFromRotationMatrix(m, 'ZYX');
+        return [eu.x, eu.y, eu.z];
     }
 
     static eulerToRotationMatrix(eu: number[]): number[] {
@@ -75,8 +75,12 @@ export class PrefabObject {
         return +this.name!.substring(this.name!.lastIndexOf('_') + 1);
     }
 
+    isKeep(): boolean {
+        return !!this.name && this.name.includes('keep');
+    }
+
     isSpecial(): boolean {
-        return this.isStartObject() || this.isEndObject() || this.isCollision();
+        return this.isStartObject() || this.isEndObject() || this.isCollision() || this.isKeep();
     }
 
     setByObject(obj: any) {

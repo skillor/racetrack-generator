@@ -18,6 +18,7 @@ export interface Level {
 export class Prefab {
     content: string = '';
     parsed: any;
+    keeps: PrefabObject[] = [];
     levels: {[key: string]:Level} = {};
     static MIN_EPS = 0.001;
 
@@ -61,6 +62,10 @@ export class Prefab {
         scaleObject: number[] = [1, 1, 1],
     ): Prefab {
         const p = new Prefab();
+
+        if (prefab !== null) {
+            p.keeps = prefab.keeps;
+        }
 
         for (let levelKey of Object.keys(tracks)) {
             const track = tracks[levelKey];
@@ -163,6 +168,7 @@ export class Prefab {
 
     private parse() {
         try {
+            this.keeps = [];
             this.levels = {};
             this.parsed = parse(this.content);
             for (let expr of this.parsed) {
@@ -170,10 +176,14 @@ export class Prefab {
                     for (let expr2 of expr.assign.value.content) {
                         if (expr2.type == 'value') {
                             const o = Prefab.createObject(expr2.value);
-                            if (!(o.levelKey in this.levels)) {
-                                this.levels[o.levelKey] = Prefab.newLevel();
+                            if (o.isKeep()) {
+                                this.keeps.push(o);
+                            } else {
+                                if (!(o.levelKey in this.levels)) {
+                                    this.levels[o.levelKey] = Prefab.newLevel();
+                                }
+                                this.levels[o.levelKey].objects.push(o);
                             }
-                            this.levels[o.levelKey].objects.push(o);
                         }
                     }
                 }

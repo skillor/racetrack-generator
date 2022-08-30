@@ -30,6 +30,9 @@ export class JsonContentVisitor {
     }
 
     visit(prefab: Prefab): any {
+        for (let keep of prefab.keeps) {
+            keep.accept(this);
+        }
         for (let level of Object.values(prefab.levels)) {
             for (let o of level.objects) {
                 o.accept(this);
