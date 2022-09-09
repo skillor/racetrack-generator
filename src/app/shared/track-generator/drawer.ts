@@ -17,11 +17,11 @@ export class Drawer {
         this.drawPoint(context, gate[1], rightColor);
     }
 
-    static drawLine(context: any | null, line: Line, color = '#f00') {
+    static drawLine(context: any | null, line: Line, color = '#f00', lineWidth = 1) {
         if (context === null) return;
 
         context.strokeStyle = color;
-        context.lineWidth = 1;
+        context.lineWidth = lineWidth;
 
         context.beginPath();
 

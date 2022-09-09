@@ -69,15 +69,18 @@ export class Track {
         context: any | null,
         leftColor: string = '#fff',
         rightColor: string | null = null,
+        leftLineWidth: number = 1,
+        rightLineWidth: number | null = null,
     ) {
         if (rightColor === null) rightColor = leftColor;
+        if (rightLineWidth === null) rightLineWidth = leftLineWidth;
         const barriers = this.getBarrierLines();
         for (let i = 0; i < barriers.left.length; i++) {
-            if (!this.deletedBarriers.includes(i * 2)) Drawer.drawLine(context, barriers.left[i], leftColor);
+            if (!this.deletedBarriers.includes(i * 2)) Drawer.drawLine(context, barriers.left[i], leftColor, leftLineWidth);
         }
 
         for (let i = 0; i < barriers.right.length; i++) {
-            if (!this.deletedBarriers.includes(i * 2 + 1)) Drawer.drawLine(context, barriers.right[i], rightColor);
+            if (!this.deletedBarriers.includes(i * 2 + 1)) Drawer.drawLine(context, barriers.right[i], rightColor, rightLineWidth);
         }
     }
 
@@ -90,7 +93,7 @@ export class Track {
         if (ctx === null) return;
         this.clearContext(ctx);
 
-        this.drawBarrierLines(ctx, '#f00', '#0f0');
+        this.drawBarrierLines(ctx, '#ff0', '#ff0', 1, 1);
 
         if (n < 0) n = this.gates.length;
 
@@ -99,8 +102,8 @@ export class Track {
         Drawer.drawGateArrow(ctx, this.firstGate(), 10, '#0f0');
         Drawer.drawGateArrow(ctx, this.lastGate(), -10, '#f00');
 
-        for (let i = off; i < n; i++) {
-            Drawer.drawGate(ctx, this.gates[i], '#fff', '#fff');
-        }
+        // for (let i = off; i < n; i++) {
+        //     Drawer.drawGate(ctx, this.gates[i], '#fff', '#fff');
+        // }
     }
 }
