@@ -34,11 +34,11 @@ export class TrackLoader {
         for (let i = 0; i < trace.palette.length; i++) {
             if (trace.palette[i].r != 0) {
                 for (let o of trace.layers[i]) {
-                    if (o.isholepath) continue;
                     const lines: Line[] = [];
                     for (let seg of o.segments) {
-                        const line: Line = [[seg.x1 * sampleSize, seg.y1 * sampleSize], [seg.x2 * sampleSize, seg.y2 * sampleSize]];
-                        lines.push(line);
+                        if (seg.type == 'L') {
+                            lines.push([[seg.x1 * sampleSize, seg.y1 * sampleSize], [seg.x2 * sampleSize, seg.y2 * sampleSize]]);
+                        }
                     }
                     groups.push(lines);
                 }
