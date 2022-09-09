@@ -12,34 +12,30 @@ export type StaticObjectType = {
     shapeName: string,
     angleOffset: number,
     size: number[],
-    adjustSize: number[],
 };
 
 export class StaticObject extends PrefabObject {
     static defaultType = 'TSStatic';
     static defaultName = null;
 
-    static shapeTypes: {[key:string]:StaticObjectType} = {
+    static shapeTypes: { [key: string]: StaticObjectType } = {
         '/levels/west_coast_usa/art/shapes/objects/constructionbarrier.dae': {
             label: 'constructionbarrier',
             shapeName: '/levels/west_coast_usa/art/shapes/objects/constructionbarrier.dae',
             angleOffset: Math.PI * 0.5,
             size: [0.55, 1.9, 0.9],
-            adjustSize: [0, 1, 0],
         },
         '/levels/west_coast_usa/art/shapes/buildings/buildingblock_concrete.dae': {
             label: 'buildingblock_concrete',
             shapeName: '/levels/west_coast_usa/art/shapes/buildings/buildingblock_concrete.dae',
             angleOffset: 0,
             size: [4, 1, 2],
-            adjustSize: [1, 0, 0],
         },
         '/levels/west_coast_usa/art/shapes/race/concrete_road_barrier_a.dae': {
             label: 'concrete_road_barrier_a',
             shapeName: '/levels/west_coast_usa/art/shapes/race/concrete_road_barrier_a.dae',
             angleOffset: 0,
             size: [3, 0.8, 1.1],
-            adjustSize: [1, 0, 0],
         },
     };
 
@@ -93,71 +89,88 @@ export class StaticObject extends PrefabObject {
         repeatObject: boolean = false,
         scaleObject: number[] = [1, 1, 1],
     ): StaticObject[] {
-        const dist = Math2D.lineLength(line);
-        const center = Math2D.centerOfLine(line);
         const angle = Math2D.normalizeAngle(Math2D.lineAngle(line));
-        let quaternion = new THREE.Quaternion();
-        quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -angle-type.angleOffset);
+        const adjustV = Math2D.angleToVector(type.angleOffset);
+
+        let objectLines: Line[] = [line];
+        if (repeatObject) {
+            const oLength = type.size[0] * scaleObject[0] * adjustV[0] + type.size[1] * scaleObject[1] * adjustV[1];
+            while (Math2D.lineLength(objectLines[0]) > oLength) {
+                objectLines = Math2D.splitLines(objectLines);
+            }
+        }
 
         const objs = [];
 
-        const p = new StaticObject();
+        for (let objectLine of objectLines) {
+            let quaternion = new THREE.Quaternion();
+            quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -angle - type.angleOffset);
+            const dist = Math2D.lineLength(objectLine);
+            const center = Math2D.centerOfLine(objectLine);
 
-        p.rot = [0, 0, 0];
-        p.pos = [center[0], center[1], 0];
+            const p = new StaticObject();
 
-        for (let i = 0; i < p.scale.length; i++) {
-            p.scale[i] = scaleObject[i] + type.adjustSize[i] * ((dist / type.size[i]) - scaleObject[i]);
-        }
+            p.rot = [0, 0, 0];
+            p.pos = [center[0], center[1], 0];
 
-        if (mesh) {
-            const meshCenter = new THREE.Vector3();
-            mesh.geometry.boundingBox!.getCenter(meshCenter);
-
-            const targetAngle = Math2D.lineAngle([
-                center,
-                [meshCenter.x, meshCenter.y],
-            ])
-
-            let off = 0;
-            let collisionResults: THREE.Intersection[] = [];
-            while (collisionResults.length == 0) {
-                const offV = Math2D.angleToVectorMultiplied(targetAngle, off);
-                off += Prefab.MIN_EPS;
-                const ray = new THREE.Raycaster(new THREE.Vector3(p.pos[0] + offV[0], p.pos[1] + offV[1], 0), new THREE.Vector3(0, 0, 1));
-                collisionResults = ray.intersectObject(mesh);
+            for (let i = 0; i < p.scale.length; i++) {
+                p.scale[i] = scaleObject[i];
             }
-            const collision = collisionResults[0];
 
-            p.pos[2] = collision.point.z;
+            p.scale[0] += adjustV[0] * ((dist / type.size[0]) - scaleObject[0]);
+            p.scale[1] += adjustV[1] * ((dist / type.size[1]) - scaleObject[1]);
 
-            const quat = new THREE.Quaternion();
-            quat.setFromUnitVectors(collision.face!.normal, new THREE.Vector3(0, 0, -1));
+            if (mesh) {
+                const meshCenter = new THREE.Vector3();
+                mesh.geometry.boundingBox!.getCenter(meshCenter);
 
-            quaternion = quat.multiply(quaternion);
+                const targetAngle = Math2D.lineAngle([
+                    center,
+                    [meshCenter.x, meshCenter.y],
+                ])
+
+                let off = 0;
+                let collisionResults: THREE.Intersection[] = [];
+                while (collisionResults.length == 0) {
+                    const offV = Math2D.angleToVectorMultiplied(targetAngle, off);
+                    off += Prefab.MIN_EPS;
+                    const ray = new THREE.Raycaster(new THREE.Vector3(p.pos[0] + offV[0], p.pos[1] + offV[1], 0), new THREE.Vector3(0, 0, 1));
+                    collisionResults = ray.intersectObject(mesh);
+                }
+                const collision = collisionResults[0];
+
+                p.pos[2] = collision.point.z;
+
+                const quat = new THREE.Quaternion();
+                quat.setFromUnitVectors(collision.face!.normal, new THREE.Vector3(0, 0, -1));
+
+                quaternion = quat.multiply(quaternion);
+            }
+
+            const euler = new THREE.Euler();
+            euler.setFromQuaternion(quaternion);
+
+            p.rot[0] = euler.x;
+            p.rot[1] = euler.y;
+            p.rot[2] = euler.z;
+
+            let off: Point = [Prefab.MIN_EPS, Prefab.MIN_EPS];
+            off = Math2D.rotatePoint(off, angle);
+
+            p.pos[0] += off[0];
+            p.pos[1] += off[1];
+            p.pos[2] += off[0];
+            if (side == 'right') p.pos[2] += Prefab.MIN_EPS;
+
+            p.shapeType = type;
+            p.shapeName = type.shapeName;
+
+            p.type = this.defaultType;
+            p.name = this.defaultName;
+
+            objs.push(p);
         }
 
-        const euler = new THREE.Euler();
-        euler.setFromQuaternion(quaternion);
-
-        p.rot[0] = euler.x;
-        p.rot[1] = euler.y;
-        p.rot[2] = euler.z;
-
-        let off: Point = [Prefab.MIN_EPS, Prefab.MIN_EPS];
-        off = Math2D.rotatePoint(off, angle);
-
-        p.pos[0] += off[0];
-        p.pos[1] += off[1];
-        p.pos[2] += off[0];
-        if (side == 'right') p.pos[2] += Prefab.MIN_EPS;
-
-        p.shapeType = type;
-        p.shapeName = type.shapeName;
-
-        p.type = this.defaultType;
-        p.name = this.defaultName;
-
-        return [p];
+        return objs;
     }
 }

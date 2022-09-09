@@ -316,4 +316,14 @@ export class Math2D {
         }
         return [[minx, miny], [maxx, maxy]];
     }
+
+    static splitLines(lines: Line[]): Line[] {
+        const rLines: Line[] = [];
+        for (let line of lines) {
+            const center = Math2D.centerOfLine(line);
+            rLines.push([line[0], center]);
+            rLines.push([center, line[1]]);
+        }
+        return rLines;
+    }
 }
