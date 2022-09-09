@@ -6,7 +6,7 @@ export class Math2D {
     static TWO_PI = Math.PI * 2;
 
     static colorMatch(color1: Uint8ClampedArray, color2: Uint8ClampedArray, diff = 0): boolean {
-        return Math.abs(color1[0] - color2[0]) + Math.abs(color1[1] - color2[1]) + Math.abs(color1[2] - color2[2]) < diff;
+        return Math.abs(color1[0] - color2[0]) + Math.abs(color1[1] - color2[1]) + Math.abs(color1[2] - color2[2]) <= diff;
     }
 
     static pointEquals(point1: Point, point2: Point): boolean {
