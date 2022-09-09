@@ -118,7 +118,12 @@ export class TrackComponent {
 
     generateTracks(): void {
         this.saveConfig();
-        this.outputSeed = ('' + Math.random()).substring(2);
+        if (this.inputSeed === '') {
+            this.outputSeed = ('' + Math.random()).substring(2);
+        } else {
+            this.outputSeed = this.inputSeed;
+        }
+
         if (!this.levelComponents) return;
         for (let comp of this.levelComponents!) {
             comp.generateTrack();

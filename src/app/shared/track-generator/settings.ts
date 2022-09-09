@@ -11,6 +11,7 @@ export class Settings {
     maxIterations: number = 1000000;
     minGateHalfSize: number = 5;
     maxGateHalfSize: number = 15;
+    maxGateHalfSizeChange: number = 1;
     maxCollisions: number = 0;
     distanceMatch: number = 19;
     angleMatch: number = 0.3;

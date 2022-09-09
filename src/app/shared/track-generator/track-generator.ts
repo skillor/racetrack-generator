@@ -196,7 +196,7 @@ export class TrackGenerator {
         return minDistance;
     }
 
-    private predictDirections(startPos: Point, targetPos: Point, currentAngle: number): [Point, number, number][] {
+    private predictDirections(startPos: Point, targetPos: Point, currentAngle: number, currentSize: number): [Point, number, number][] {
 
         const targetAngle = Math2D.lineAngle([startPos, targetPos]);
 
@@ -225,10 +225,13 @@ export class TrackGenerator {
 
             const newPos: Point = [Math.floor(startPos[0] + d[0]), Math.floor(startPos[1] + d[1])];
 
-            let size = Math.min(+this.settings.maxGateHalfSize, this.calcMaxGateHalfSize(newPos, newAngle) - 1);
-            if (+this.settings.minGateHalfSize >= 0 && size > +this.settings.minGateHalfSize) size = +this.settings.minGateHalfSize + (this.random() * (size - +this.settings.minGateHalfSize));
-            size = Math.max(+this.settings.minGateHalfSize, size);
+            const maxSize = Math.min(+this.settings.maxGateHalfSize, this.calcMaxGateHalfSize(newPos, newAngle));
+            if (maxSize < +this.settings.minGateHalfSize) continue;
 
+            let size = currentSize + ((this.random() - 0.5) * 2 * +this.settings.maxGateHalfSizeChange);
+            size = Math.min(maxSize, size);
+            size = Math.max(+this.settings.minGateHalfSize, size);
+            // if (Math.abs(size - currentSize) > +this.settings.maxGateHalfSizeChange + 0.1) continue;
             res.push([newPos, newAngle, size]);
         }
 
@@ -296,6 +299,7 @@ export class TrackGenerator {
 
             const currentPos = Math2D.lineCenterPos(currentGate);
             const currentAngle = Math2D.gateAngle(currentGate);
+            const currentSize = Math2D.lineLength(currentGate) / 2;
 
             const currentGridPos = this.posAngleToGrid(currentPos, currentAngle);
             visited[currentGridPos[0]][currentGridPos[1]][currentGridPos[2]] = true;
@@ -315,7 +319,7 @@ export class TrackGenerator {
                 return [traversedGates, foundEnd, iterationCount];
             }
 
-            let newGates = this.predictDirections(currentPos, endPos, currentAngle);
+            let newGates = this.predictDirections(currentPos, endPos, currentAngle, currentSize);
             switch (this.mode) {
                 case 'longest':
                     newGates.reverse();
