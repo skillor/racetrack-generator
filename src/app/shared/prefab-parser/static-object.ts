@@ -15,8 +15,8 @@ export type StaticObjectType = {
 };
 
 export class StaticObject extends PrefabObject {
-    static defaultType = 'TSStatic';
-    static defaultName = null;
+    override type = 'TSStatic';
+    override name = null;
 
     static shapeTypes: { [key: string]: StaticObjectType } = {
         '/levels/west_coast_usa/art/shapes/objects/constructionbarrier.dae': {
@@ -121,23 +121,7 @@ export class StaticObject extends PrefabObject {
             p.scale[1] += adjustV[1] * ((dist / type.size[1]) - scaleObject[1]);
 
             if (mesh) {
-                const meshCenter = new THREE.Vector3();
-                mesh.geometry.boundingBox!.getCenter(meshCenter);
-
-                const targetAngle = Math2D.lineAngle([
-                    center,
-                    [meshCenter.x, meshCenter.y],
-                ])
-
-                let off = 0;
-                let collisionResults: THREE.Intersection[] = [];
-                while (collisionResults.length == 0) {
-                    const offV = Math2D.angleToVectorMultiplied(targetAngle, off);
-                    off += Prefab.MIN_EPS;
-                    const ray = new THREE.Raycaster(new THREE.Vector3(p.pos[0] + offV[0], p.pos[1] + offV[1], 0), new THREE.Vector3(0, 0, 1));
-                    collisionResults = ray.intersectObject(mesh);
-                }
-                const collision = collisionResults[0];
+                const collision = PrefabObject.getMeshCollision(mesh, center);
 
                 p.pos[2] = collision.point.z;
 
@@ -164,9 +148,6 @@ export class StaticObject extends PrefabObject {
 
             p.shapeType = type;
             p.shapeName = type.shapeName;
-
-            p.type = this.defaultType;
-            p.name = this.defaultName;
 
             objs.push(p);
         }

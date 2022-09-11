@@ -1,8 +1,10 @@
+import { DecalRoad } from "./decal-road";
+import { Visitor } from "./object-visitor";
 import { Prefab } from "./prefab";
 import { PrefabObject } from "./prefab-object";
 import { StaticObject } from "./static-object";
 
-export class JsonContentVisitor {
+export class JsonContentVisitor implements Visitor {
     private parentName: string;
     private indent = 0;
     indentSize = 2;
@@ -47,21 +49,50 @@ export class JsonContentVisitor {
         if (o.type === undefined) return;
         if (o.name === undefined) return;
 
-        let name = '';
-        if (o.name !== null) name = o.name;
-
-        this.writeLine(JSON.stringify({
+        const json: any = {
             'class': o.type,
             'persistentId': Prefab.createPersitentId(),
             '__parent': this.parentName,
-            "position": o.pos!,
-            "rotationMatrix": PrefabObject.eulerToRotationMatrix(o.rot!),
-            "scale": o.scale!,
-            "shapeName": o.shapeName!,
-            "isRenderEnabled":false,
-            "useInstanceRenderData":true,
-            "collisionType":"Visible Mesh Final",
-            "prebuildCollisionData":true,
-        }));
+            'position': o.pos!,
+            'rotationMatrix': PrefabObject.eulerToRotationMatrix(o.rot!),
+            'scale': o.scale!,
+            'shapeName': o.shapeName!,
+            'isRenderEnabled': false,
+            'useInstanceRenderData': true,
+            'collisionType': 'Visible Mesh Final',
+            'prebuildCollisionData': true,
+        };
+
+        if (o.name !== null) {
+            json.name = o.name;
+        }
+
+        this.writeLine(JSON.stringify(json));
+    }
+
+    visitDecalRoad(o: DecalRoad): void {
+        if (o.type === undefined) return;
+        if (o.name === undefined) return;
+
+        const json: any = {
+            'class': o.type,
+            'persistentId': Prefab.createPersitentId(),
+            '__parent': this.parentName,
+            'detail': 1,
+            "improvedSpline": true,
+            'drivability': 1,
+            'gatedRoad': true,
+            'lanesLeft': 1,
+            'lanesRight': 0,
+            'material': 'road_invisible',
+            'position': [0,0,0],
+            'nodes': o.nodes,
+        };
+
+        if (o.name !== null) {
+            json.name = o.name;
+        }
+
+        this.writeLine(JSON.stringify(json));
     }
 }

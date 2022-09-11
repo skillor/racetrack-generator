@@ -1,7 +1,8 @@
 import { Point } from "../track-generator/point";
 import { Visitor } from "./object-visitor";
-import { Level } from "./prefab";
+import { Level, Prefab } from "./prefab";
 import * as THREE from 'three';
+import { Math2D } from "../track-generator/math2d";
 
 export class PrefabObject {
     name?: string | null;
@@ -53,6 +54,29 @@ export class PrefabObject {
             off[1] = level.maxPos[1];
         }
         return [(p[0] / scale) + off[0], off[1] - (p[1] / scale)]
+    }
+
+    static getMeshCollision(
+        mesh: THREE.Mesh,
+        point: Point
+    ): THREE.Intersection<THREE.Object3D<THREE.Event>> {
+        const meshCenter = new THREE.Vector3();
+        mesh.geometry.boundingBox!.getCenter(meshCenter);
+
+        const targetAngle = Math2D.lineAngle([
+            point,
+            [meshCenter.x, meshCenter.y],
+        ]);
+
+        let off = 0;
+        let collisionResults: THREE.Intersection[] = [];
+        while (collisionResults.length == 0) {
+            const offV = Math2D.angleToVectorMultiplied(targetAngle, off);
+            off += Prefab.MIN_EPS;
+            const ray = new THREE.Raycaster(new THREE.Vector3(point[0] + offV[0], point[1] + offV[1], 0), new THREE.Vector3(0, 0, 1));
+            collisionResults = ray.intersectObject(mesh);
+        }
+        return collisionResults[0];
     }
 
     isStartObject(): boolean {

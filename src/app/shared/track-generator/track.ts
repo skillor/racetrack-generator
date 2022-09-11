@@ -1,11 +1,14 @@
 import { Drawer } from "./drawer";
 import { Line } from "./line";
+import { Math2D } from "./math2d";
+import { Point } from "./point";
 
 export class Track {
     width: number;
     height: number;
     collisions: boolean[][];
     gates: Line[];
+    drivePath?: [number, number, number][] = undefined;
     barrierLines?: {left: Line[], right: Line[]} = undefined;
     deletedBarriers: number[];
 
@@ -53,6 +56,19 @@ export class Track {
         return this.barrierLines!;
     }
 
+    private calculateDrivePath() {
+        this.drivePath = [];
+        for (let i = 0; i < this.gates.length; i++) {
+            const pos = Math2D.centerOfLine(this.gates[i]);
+            this.drivePath.push([pos[0], pos[1], Math2D.lineLength(this.gates[i]) / 2]);
+        }
+    }
+
+    getDrivePath(): [number, number, number][] {
+        if (this.drivePath === undefined) this.calculateDrivePath();
+        return this.drivePath!;
+    }
+
     firstGate(): Line {
         return this.gates[0];
     }
@@ -84,6 +100,17 @@ export class Track {
         }
     }
 
+    drawDrivePath(
+        context: any | null,
+        color: string = '#fff',
+        lineWidth: number = 1,
+    ) {
+        const drivePath = this.getDrivePath();
+        for (let i = 0; i < drivePath.length - 1; i++) {
+            Drawer.drawLine(context, [drivePath[i], drivePath[i+1]], color, lineWidth);
+        }
+    }
+
     clearContext(ctx: any | null) {
         if (ctx === null) return;
         ctx.clearRect(0, 0, this.width, this.height);
@@ -94,6 +121,8 @@ export class Track {
         this.clearContext(ctx);
 
         this.drawBarrierLines(ctx, '#ff0', '#ff0', 1, 1);
+
+        this.drawDrivePath(ctx, '#00f', 1);
 
         if (n < 0) n = this.gates.length;
 

@@ -6,6 +6,7 @@ import { PrefabVisitor } from './prefab-content-visitor';
 import { JsonContentVisitor } from './json-content-visitor';
 import * as THREE from 'three';
 import Delaunator from 'delaunator';
+import { DecalRoad } from './decal-road';
 
 
 export interface Level {
@@ -83,7 +84,7 @@ export class Prefab {
                 const referencePoints = [];
 
                 for (let o of prefab.levels[levelKey].objects) {
-                    if (o.type == StaticObject.defaultType && !o.isSpecial()) referencePoints.push(o.pos!);
+                    if (o.type == 'TSStatic' && !o.isSpecial()) referencePoints.push(o.pos!);
                 }
 
                 const geom = new THREE.BufferGeometry();
@@ -107,11 +108,24 @@ export class Prefab {
                 mesh.geometry.computeBoundingBox();
             }
 
+            if (!(levelKey in p.levels)) p.levels[levelKey] = Prefab.newLevel();
+
+            const drivePath = track.getDrivePath();
+            if (drivePath.length > 0) {
+                for (let i = 0; i < drivePath.length; i++) {
+                    const pos = PrefabObject.pointFromLevelToPrefab([drivePath[i][0], drivePath[i][1]], trackScale, prefab?.levels[levelKey]);
+                    drivePath[i] = [pos[0], pos[1], drivePath[i][2] / trackScale];
+                }
+                p.levels[levelKey].objects.push(DecalRoad.createByDrivePath(
+                    drivePath,
+                    mesh,
+                ));
+            }
+
+
             const barriers = track.getBarrierLines();
             for (let side of ['left', 'right'] as ('left' | 'right')[]) {
                 for (let barrier of barriers[side]) {
-                    if (!(levelKey in p.levels)) p.levels[levelKey] = Prefab.newLevel();
-
                     const objs = StaticObject.createByLineAndType(
                         [
                             PrefabObject.pointFromLevelToPrefab(barrier[0], trackScale, prefab?.levels[levelKey]),
@@ -140,7 +154,7 @@ export class Prefab {
 
 
     private static createObject(obj: any): PrefabObject {
-        if (obj.type === StaticObject.defaultType) {
+        if (obj.type == 'TSStatic') {
             return StaticObject.createByObject(obj);
         }
         return PrefabObject.createByObject(obj);

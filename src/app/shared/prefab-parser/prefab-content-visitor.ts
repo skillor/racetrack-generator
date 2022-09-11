@@ -1,3 +1,4 @@
+import { DecalRoad } from "./decal-road";
 import { Visitor } from "./object-visitor";
 import { Prefab } from "./prefab";
 import { PrefabObject } from "./prefab-object";
@@ -59,7 +60,7 @@ export class PrefabVisitor implements Visitor {
         this.writeLine('canSave = "1";');
         this.writeLine('canSaveDynamicFields = "1";');
         this.indent--;
-        this.writeLine('};')
+        this.writeLine('};');
     }
 
     visitStaticObject(o: StaticObject): void {
@@ -88,6 +89,49 @@ export class PrefabVisitor implements Visitor {
         this.writeLine('isRenderEnabled = "false";');
         this.writeLine('canSave = "1";');
         this.writeLine('canSaveDynamicFields = "1";');
+        this.indent--;
+        this.writeLine('};');
+    }
+
+    visitDecalRoad(o: DecalRoad): void {
+        if (o.type === undefined) return;
+        if (o.name === undefined) return;
+
+        let name = '';
+        if (o.name !== null) name = o.name;
+
+        this.writeLine('new ' + o.type + '(' + name + ') {');
+        this.indent++;
+        this.writePositionRotationScale(o);
+        this.writeLine('material = "road_invisible";');
+        this.writeLine('drivability = "1";');
+        this.writeLine('lanesLeft = "1";');
+        this.writeLine('lanesRight = "0";');
+        this.writeLine('oneWay = "1";');
+        this.writeLine('flipDirection = "0";');
+        this.writeLine('gatedRoad = "1";');
+        this.writeLine('useSubdivisions = "0";');
+        this.writeLine('ImprovedSpline = "1";');
+        this.writeLine('startTangent = "0";');
+        this.writeLine('endTangent = "0";');
+        this.writeLine('looped = "0";');
+        this.writeLine('smoothness = "0.5";');
+        this.writeLine('detail = "1";');
+        this.writeLine('overObjects = "0";');
+        this.writeLine('textureLength = "5";');
+        this.writeLine('breakAngle = "3";');
+        this.writeLine('renderPriority = "10";');
+        this.writeLine('zBias = "0";');
+        this.writeLine('decalBias = "0.000500000024";');
+        this.writeLine('distanceFade = "0 0";');
+        this.writeLine('startEndFade = "0 0";');
+        this.writeLine('hiddenInNavi = "0";');
+        this.writeLine('canSave = "1";');
+        this.writeLine('canSaveDynamicFields = "1";');
+        this.writeLine('useTemplate = "true";');
+        for (let i = 0; i < o.nodes.length; i++) {
+            this.writeLine('Node = "' + o.nodes[i].join(' ') + '";');
+        }
         this.indent--;
         this.writeLine('};')
     }
