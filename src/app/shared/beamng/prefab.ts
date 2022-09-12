@@ -1,4 +1,4 @@
-import { parse } from './parser.js';
+import { parse } from './prefab-parser.js';
 import { PrefabObject } from './prefab-object';
 import { StaticObject, StaticObjectType } from './static-object';
 import { Track } from '../track-generator/track';
@@ -7,6 +7,7 @@ import { JsonContentVisitor } from './json-content-visitor';
 import * as THREE from 'three';
 import Delaunator from 'delaunator';
 import { DecalRoad } from './decal-road';
+import { GameplayMission } from './gameplay-mission';
 
 
 export interface Level {
@@ -27,6 +28,7 @@ export class Prefab {
     parsed: any;
     keeps: PrefabObject[] = [];
     levels: {[key: string]:Level} = {};
+    mission?: GameplayMission;
     static MIN_EPS = 0.001;
 
     constructor() {
@@ -67,6 +69,8 @@ export class Prefab {
         prefab: Prefab | null = null,
         repeatObject: boolean = false,
         scaleObject: number[] = [1, 1, 1],
+        levelName: string = 'unknown_level',
+        trackName: string = 'unknown_track',
     ): Prefab {
         const p = new Prefab();
 
@@ -116,12 +120,20 @@ export class Prefab {
                     const pos = PrefabObject.pointFromLevelToPrefab([drivePath[i][0], drivePath[i][1]], trackScale, prefab?.levels[levelKey]);
                     drivePath[i] = [pos[0], pos[1], drivePath[i][2] / trackScale];
                 }
-                p.levels[levelKey].objects.push(DecalRoad.createByDrivePath(
+
+                const decalRoad = DecalRoad.createByDrivePath(
                     drivePath,
                     mesh,
-                ));
-            }
+                );
 
+                p.levels[levelKey].objects.push(decalRoad);
+
+                p.mission = new GameplayMission(
+                    levelName,
+                    trackName,
+                    decalRoad.nodes,
+                );
+            }
 
             const barriers = track.getBarrierLines();
             for (let side of ['left', 'right'] as ('left' | 'right')[]) {

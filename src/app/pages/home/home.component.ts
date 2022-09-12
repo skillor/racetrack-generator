@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Prefab } from 'src/app/shared/prefab-parser/prefab';
+import { Prefab } from 'src/app/shared/beamng/prefab';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Delaunator from 'delaunator';

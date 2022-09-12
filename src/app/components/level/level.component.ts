@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
-import { Level, Prefab } from 'src/app/shared/prefab-parser/prefab';
-import { PrefabObject } from 'src/app/shared/prefab-parser/prefab-object';
-import { StaticObject } from 'src/app/shared/prefab-parser/static-object';
+import { Level, Prefab } from 'src/app/shared/beamng/prefab';
+import { PrefabObject } from 'src/app/shared/beamng/prefab-object';
+import { StaticObject } from 'src/app/shared/beamng/static-object';
 import { StorageService } from 'src/app/shared/storage/storage.service';
 import { Drawer } from 'src/app/shared/track-generator/drawer';
 import { GeneratorMode } from 'src/app/shared/track-generator/generator-modes';

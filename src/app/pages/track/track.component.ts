@@ -1,13 +1,14 @@
 import { Component, QueryList, ViewChildren } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import * as fflate from 'fflate';
-import { PRESETS, Prefab } from 'src/app/shared/prefab-parser/prefab';
-import { StaticObject, StaticObjectType } from 'src/app/shared/prefab-parser/static-object';
+import { PRESETS, Prefab } from 'src/app/shared/beamng/prefab';
+import { StaticObject, StaticObjectType } from 'src/app/shared/beamng/static-object';
 import { StorageService } from 'src/app/shared/storage/storage.service';
 import { GeneratorMode } from 'src/app/shared/track-generator/generator-modes';
 import { Settings } from 'src/app/shared/track-generator/settings';
 import { Track } from 'src/app/shared/track-generator/track';
 import { LevelComponent } from 'src/app/components/level/level.component';
+import { ModExporter } from 'src/app/shared/beamng/mod-exporter';
+import { GameplayMission } from 'src/app/shared/beamng/gameplay-mission';
 
 @Component({
     selector: 'app-track',
@@ -321,6 +322,8 @@ export class TrackComponent {
             this.prefab,
             this.repeatObject,
             [+this.exportScaleX, +this.exportScaleY, +this.exportScaleZ],
+            this.levelName,
+            this.trackName,
         );
         prefab.translate([+this.exportTranslateX, +this.exportTranslateY, +this.exportTranslateZ]);
         prefab.stringify();
@@ -340,30 +343,9 @@ export class TrackComponent {
 
     levelName = 'west_coast_usa';
 
-    jsonLines(...objects: any[]) {
-        return objects.map((o: any) => JSON.stringify(o)).join('\n');
-    }
-
     exportMod(): void {
         const prefab = this.createPrefab();
-        const zipped = fflate.zipSync({
-            ['levels/' + this.levelName + '/main/items.level.json']:
-                fflate.strToU8(this.jsonLines(
-                    {"name":"MissionGroup","class":"SimGroup","enabled":"1",'persistentId': Prefab.createPersitentId()},
-                    {"name":"GeneratedTracks","class":"SimGroup","enabled":"1",'persistentId': Prefab.createPersitentId()},
-                 )),
-            ['levels/' + this.levelName + '/main/GeneratedTracks/items.level.json']:
-                fflate.strToU8(this.jsonLines(
-                    ...this.modIncludeTracks.split('\n').filter((v) => v).map((v) => {
-                        return {"name":v,"class":"SimGroup","__parent":"GeneratedTracks","groupPosition":"0 0 0",'persistentId': Prefab.createPersitentId()};
-                    })
-                )),
-            ['levels/' + this.levelName + '/main/GeneratedTracks/' + this.trackName + '/items.level.json']:
-                fflate.strToU8(prefab.toJson(this.trackName)),
-        }, {
-            level: 1,
-            mtime: new Date()
-        });
+        const zipped = ModExporter.createModZip(prefab, this.levelName, this.trackName, this.modIncludeTracks);
 
         const blob = new Blob([zipped], {
             type: 'application/zip',
