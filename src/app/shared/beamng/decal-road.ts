@@ -18,14 +18,6 @@ export class DecalRoad extends PrefabObject {
     ): DecalRoad {
         const p = new DecalRoad();
 
-        p.rot = [0, 0, 0];
-        p.pos = [drivePath[0][0], drivePath[0][1], 0];
-
-        if (mesh) {
-            const collision = PrefabObject.getMeshCollision(mesh, [drivePath[0][0], drivePath[0][1]]);
-            p.pos[2] = collision.point.z;
-        }
-
         for (let i = 0; i < drivePath.length; i++) {
             const node: [number, number, number, number] = [drivePath[i][0], drivePath[i][1], 0, drivePath[i][2]];
             if (mesh) {
@@ -34,6 +26,10 @@ export class DecalRoad extends PrefabObject {
             }
             p.nodes.push(node);
         }
+
+        p.rot = [0, 0, 0];
+        p.pos = [p.nodes[0][0], p.nodes[0][1], p.nodes[0][2]];
+
         return p;
     }
 }

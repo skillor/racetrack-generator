@@ -86,7 +86,7 @@ export class JsonContentVisitor implements Visitor {
             'lanesRight': 0,
             'material': 'road_invisible',
             'position': [0,0,0],
-            'nodes': o.nodes,
+            'nodes': o.nodes.slice(1),
         };
 
         if (o.name !== null) {

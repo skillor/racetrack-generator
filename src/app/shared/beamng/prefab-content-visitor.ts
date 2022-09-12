@@ -129,7 +129,7 @@ export class PrefabVisitor implements Visitor {
         this.writeLine('canSave = "1";');
         this.writeLine('canSaveDynamicFields = "1";');
         this.writeLine('useTemplate = "true";');
-        for (let i = 0; i < o.nodes.length; i++) {
+        for (let i = 1; i < o.nodes.length; i++) {
             this.writeLine('Node = "' + o.nodes[i].join(' ') + '";');
         }
         this.indent--;

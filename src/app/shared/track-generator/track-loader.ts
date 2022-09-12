@@ -26,7 +26,7 @@ export class TrackLoader {
             }
         }
 
-        const options = { qtres:0.01, ltres: ltres, pal: [{r:0,g:0,b:0,a:255}, {r:255,g:255,b:255,a:255}] };
+        const options = { qtres:0.01, ltres: ltres, pal: [{r:0,g:0,b:0,a:255}, {r:255,g:255,b:255,a:255}], pathomit: 0 };
 
         const groups: Line[][] = [];
         const trace = ImageTracer.imagedataToTracedata(ctx2.getImageData(0, 0, width, height), options);
