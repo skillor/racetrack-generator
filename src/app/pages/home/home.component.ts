@@ -3,6 +3,7 @@ import { Prefab } from 'src/app/shared/beamng/prefab';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Delaunator from 'delaunator';
+import { Race } from 'src/app/shared/beamng/race';
 
 @Component({
     selector: 'app-home',
@@ -17,6 +18,54 @@ export class HomeComponent {
     translateX: string = '0';
     translateY: string = '0';
     translateZ: string = '0';
+
+    convertRaceToHotlap(): void {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.race.json';
+        input.style.display = 'none';
+        document.body.appendChild(input);
+
+        const onEnd = () => {
+            document.body.removeChild(input);
+        };
+
+        input.onchange = () => {
+            if (!input.files || input.files.length == 0 || input.files[0].size > 250000000 || !FileReader) {
+                return onEnd();
+            }
+            const file = input.files[0];
+            let fileName = file.name;
+            const fileReader = new FileReader();
+            fileReader.onload = (e) => {
+                if (!e.target || !e.target.result) {
+                    return onEnd();
+                }
+                let content: string;
+                if (typeof e.target.result === 'string') {
+                    content = e.target.result;
+                } else {
+                    content = new TextDecoder().decode(e.target.result);
+                }
+
+                try {
+                    const race = Race.fromRaceData(JSON.parse(content));
+                    const blob = new Blob([JSON.stringify(race.toHotlapData())], {
+                        type: 'text/plain',
+                    });
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = fileName.split('.')[0] + '.json';
+                    a.click();
+                } catch (err) {
+                    console.error(err);
+                }
+                onEnd();
+            };
+            fileReader.readAsText(file);
+        };
+        input.click();
+    }
 
     importPrefab(): void {
         const input = document.createElement('input');

@@ -1,7 +1,8 @@
 <a routerLink="/track" class="btn">Track Builder</a>
+<button class="btn" (click)="convertRaceToHotlap()">Convert Racepath to Hotlap</button>
 <h1>Edit Prefab</h1>
 <div class="flex flex-wrap">
-    <button class="btn mr-0 rounded-r-none" (click)="importPrefab()">Import Prefab</button>
+    <button class="btn mr-0" (click)="importPrefab()">Import Prefab</button>
     <div *ngIf="prefab">
         <h4>{{fileName}}</h4>
         <div class="flex flex-row">

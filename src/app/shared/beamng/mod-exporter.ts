@@ -33,6 +33,7 @@ export class ModExporter {
         if (prefab.mission) {
             zip['gameplay/missions/' + levelName + '/aiRace/' + trackName + '/info.json'] = fflate.strToU8(JSON.stringify(prefab.mission.getInfo()));
             zip['gameplay/missions/' + levelName + '/aiRace/' + trackName + '/race.race.json'] = fflate.strToU8(JSON.stringify(prefab.mission.getRace()));
+            zip['settings/hotlapping/info/' + levelName + '-' + trackName + '.json'] = fflate.strToU8(JSON.stringify(prefab.mission.getHotlap()));
         }
 
         return fflate.zipSync(zip, {
