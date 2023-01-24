@@ -1,4 +1,4 @@
-import { fromEvent, map, Observable, of, take } from "rxjs";
+import { finalize, fromEvent, map, Observable, of } from "rxjs";
 import * as seedrandom from "seedrandom";
 import { GeneratorMode } from "./generator-modes";
 import { Line } from "./line";
@@ -10,6 +10,7 @@ import { Track } from "./track";
 
 export class TrackGenerator {
     settings: Settings;
+    progressEmitter?: (msg: any) => void;
 
     private boundsLines(): Line[] {
         return [
@@ -270,7 +271,7 @@ export class TrackGenerator {
 
         const gridSize = this.posAngleToGrid([this.track.width, this.track.height], Math.PI);
 
-        console.log(gridSize);
+        console.log('grid size', gridSize);
 
         const visited: boolean[][][] = new Array<boolean[][]>(gridSize[0]);
 
@@ -292,7 +293,7 @@ export class TrackGenerator {
                 if (trys >= +this.settings.maxTrys - 1) return [[], false, iterationCount];
                 this.settings.angleComputeFactor += 1;
                 return this.findTrackDFS(iterationCount, trys + 1);
-            };
+            }
             const currentGate = current[0];
             const traversedGates = current[1];
             let prevCollisions = current[2];
@@ -318,6 +319,8 @@ export class TrackGenerator {
                 console.log(prevCollisions + ' collisions');
                 return [traversedGates, foundEnd, iterationCount];
             }
+
+            if (this.progressEmitter) this.progressEmitter([traversedGates, foundEnd, iterationCount]);
 
             let newGates = this.predictDirections(currentPos, endPos, currentAngle, currentSize);
             switch (this.mode) {
@@ -359,11 +362,10 @@ export class TrackGenerator {
             // Create a new Worker
             const worker = new Worker(new URL('./track-generator.worker', import.meta.url));
             const workerSubscription = fromEvent(worker, 'message').pipe(
-                take(1),
                 map((event: any) => {
-                    console.log(event.data);
                     return event.data;
                 }),
+                finalize(() => worker.postMessage({type: 'stop'})),
             );
             worker.postMessage({ type: 'start', trackGenerator: this.serialize() });
             return workerSubscription;
@@ -376,7 +378,7 @@ export class TrackGenerator {
 
     generate(background = true): Observable<[number, number]> {
         const startTime = new Date().getTime();
-
+        const initialGates = [...this.track.gates];
         return this.findTrackDFSWorker(background).pipe(
             map((solution) => {
                 const generationTime = new Date().getTime() - startTime;
@@ -389,11 +391,7 @@ export class TrackGenerator {
                 const gates = solution[0];
                 if (solution[1]) console.log('path is finished');
 
-                const n = gates.length;
-
-                for (let i = 0; i < n; i++) {
-                    if (i > 0) this.track.gates.push(gates[i]);
-                }
+                this.track.gates = [...initialGates, ...gates];
 
                 return [generationTime, solution[2]];
             })

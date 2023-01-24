@@ -8,7 +8,7 @@ import { Settings } from 'src/app/shared/track-generator/settings';
 import { Track } from 'src/app/shared/track-generator/track';
 import { LevelComponent } from 'src/app/components/level/level.component';
 import { ModExporter } from 'src/app/shared/beamng/mod-exporter';
-import { GameplayMission } from 'src/app/shared/beamng/gameplay-mission';
+import { combineLatest, Subscription, tap } from 'rxjs';
 
 @Component({
     selector: 'app-track',
@@ -26,6 +26,7 @@ export class TrackComponent {
     outputSeed = '';
     generationTime = 0;
     generationIterations = 0;
+    generationSubscription?: Subscription;
 
     prefabScale: string;
     importSampleSize: string = '10';
@@ -117,7 +118,12 @@ export class TrackComponent {
         c.saveConfig();
     }
 
+    stopGeneration(): void {
+        this.generationSubscription?.unsubscribe();
+    }
+
     generateTracks(): void {
+        this.stopGeneration();
         this.saveConfig();
         if (this.inputSeed === '') {
             this.outputSeed = ('' + Math.random()).substring(2);
@@ -126,9 +132,13 @@ export class TrackComponent {
         }
 
         if (!this.levelComponents) return;
-        for (let comp of this.levelComponents!) {
-            comp.generateTrack();
-        }
+
+        this.generationSubscription = combineLatest(this.levelComponents!.map((comp) => comp.generateTrack().pipe(
+            tap(() => {
+                this.generationTime = Math.max(comp.generationTime);
+                this.generationIterations = Math.max(comp.generationIterations);
+            })
+        ))).subscribe();
     }
 
     mergeCanvy(canvy: HTMLCanvasElement[]): HTMLCanvasElement {

@@ -1,13 +1,12 @@
-import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, ViewChild } from '@angular/core';
+import { map, Observable } from 'rxjs';
 import { Level, Prefab } from 'src/app/shared/beamng/prefab';
 import { PrefabObject } from 'src/app/shared/beamng/prefab-object';
 import { StaticObject } from 'src/app/shared/beamng/static-object';
 import { StorageService } from 'src/app/shared/storage/storage.service';
 import { Drawer } from 'src/app/shared/track-generator/drawer';
 import { GeneratorMode } from 'src/app/shared/track-generator/generator-modes';
-import { Line } from 'src/app/shared/track-generator/line';
 import { Math2D } from 'src/app/shared/track-generator/math2d';
-import { Point } from 'src/app/shared/track-generator/point';
 import { Settings } from 'src/app/shared/track-generator/settings';
 import { Track } from 'src/app/shared/track-generator/track';
 import { TrackGenerator } from 'src/app/shared/track-generator/track-generator';
@@ -235,7 +234,7 @@ export class LevelComponent implements AfterViewInit {
         return this.track!;
     }
 
-    generateTrack() {
+    generateTrack(): Observable<boolean> {
         this.saveConfig();
 
         this.setSize();
@@ -267,10 +266,10 @@ export class LevelComponent implements AfterViewInit {
             ],
         ));
 
-        this.addSegments();
+        return this.addSegments();
     }
 
-    addSegments() {
+    addSegments(): Observable<boolean> {
         const tStartGate = JSON.parse(this.startGate);
         const tEndGate = JSON.parse(this.endGate);
 
@@ -288,12 +287,15 @@ export class LevelComponent implements AfterViewInit {
             this.settings.copy(),
         );
 
-        trackGenerator.generate(true).subscribe((gen) => {
-            this.generationTime = gen[0];
-            this.generationIterations = gen[1];
-
-            this.getTrack().drawTrack(this.trackCanvas?.getContext('2d'));
-        });
+        return trackGenerator.generate(true).pipe(
+            map((gen) => {
+                this.generationTime = gen[0];
+                this.generationIterations = gen[1];
+                this.getTrack().clone().drawTrack(this.trackCanvas?.getContext('2d'));
+                this.track = this.getTrack().clone();
+                return true;
+            }),
+        );
     }
 
     deleteSegments() {

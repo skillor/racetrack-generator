@@ -16,7 +16,8 @@
             <button [class.btn-active]="generatorMode == 'maxwidth'" (click)="generatorMode = 'maxwidth'"
                 class="btn">Width</button>
         </div>
-        <button class="btn" (click)="generateTracks()">Generate</button>
+        <button class="btn" *ngIf="!this.generationSubscription || this.generationSubscription.closed" (click)="generateTracks()">Generate</button>
+        <button class="btn" *ngIf="this.generationSubscription && !this.generationSubscription.closed" (click)="stopGeneration()">Stop</button>
         <div class="flex flex-col">
             <div>Time: {{ generationTime }} ms</div>
             <div>Iterations: {{ generationIterations }}</div>

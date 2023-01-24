@@ -28,6 +28,10 @@ export class Track {
         this.deletedBarriers = deletedBarriers;
     }
 
+    clone(): Track {
+        return new Track(this.width, this.height, this.collisions, this.gates, this.deletedBarriers);
+    }
+
     serialize(): string {
         return JSON.stringify({ width: this.width, height: this.height, collisions: this.collisions, gates: this.gates, deletedBarriers: this.deletedBarriers });
     }
